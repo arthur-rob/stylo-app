@@ -1,4 +1,4 @@
-import Geometry from '@/lib/geometry/index' 
+import Geometry from '@/lib/geometry/Index' 
 class Path extends Geometry {
   constructor(points) {
       super({ type: 'path'})

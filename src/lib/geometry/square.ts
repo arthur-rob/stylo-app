@@ -1,4 +1,4 @@
-import Geometry from '@/lib/geometry/index' 
+import Geometry from '@/lib/geometry/Index' 
 class Square extends Geometry {
 	constructor(x = 0, y = 0, width = 20) {
 	    super({ type: 'square'})

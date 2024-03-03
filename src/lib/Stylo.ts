@@ -1,15 +1,34 @@
-import Layer from './Layer.ts'
+import Layer from '@/lib/Layer'
+import Controls from '@/lib/Controls'
+import { Box } from '@/models/lib'
+import Geometry from './geometry/Index'
+import axios from 'axios'
+
+const Axios = axios.create({
+    baseURL: 'http://localhost:8888/'
+})
+type size = 'A5' | 'A4'
 class Stylo {
-    constructor (size = "A4", args = {}) {
+    canvasSelector: string
+    canvas?: HTMLCanvasElement
+    mapedSize: Box
+    scale: number
+    width: number
+    height: number
+    layers: Layer[]
+    context: CanvasRenderingContext2D | null
+
+    constructor (size: size = 'A4', args: Partial<Stylo> = {}) {
         this.canvasSelector = "#stylo"
         this.canvas = undefined
         this.mapedSize = this.mapSize(size)
         this.scale = args.scale || 1
         this.width = args.width || this.mapedSize.width
         this.height = args.height || this.mapedSize.height
-        this.layers = [new Layer(1)]
+        this.layers = [new Layer()]
+        this.context = null
     }
-    mapSize (size) {
+    mapSize (size: size): Box {
         const format = {
             'A5' : {
                 width: 148,
@@ -22,8 +41,8 @@ class Stylo {
         }
         return format[size]
     }
-    init (id, options = { }) {
-        var canvas = document.querySelector(id || this.canvasSelector)
+    init (id: string, options = { }) {
+        var canvas = document.querySelector(id || this.canvasSelector) as HTMLCanvasElement
         if (!canvas) console.error('Can\'t find container element')
         canvas.width = options.width || this.width
         canvas.height = options.height || this.height
@@ -40,17 +59,18 @@ class Stylo {
         return this.context
     }
     scaleCanvas () {
+        if (!this.canvas) return
         this.canvas.width = this.width * this.scale
         this.canvas.height = this.height * this.scale
     }
-    add (element, layerId) {
+    add (element: Geometry, layerId: string) {
         if (!element) return console.log('Argument need to be a geometry')
         if(!layerId) this.layers[0].add(element)
         else {
             console.error('Not Implemented')
         }
     }
-    render (args) {
+    render () {
         this.scaleCanvas()
         if (this.layers.length < 1) return
         this.layers.forEach(layer => {
@@ -67,31 +87,22 @@ class Stylo {
     getGeometriesByLayer (layerId) {
         // Implement into Geometries First
     }
-    getGcode (ploElements) {
-        if (typeof ploElements == 'undefined') ploElements = this.ploGeometries
+    getGcode (ploElements?: Geometry[]) {
+        if (typeof ploElements == 'undefined') ploElements = this.layers[0].geometries
         return Controls.generate(ploElements)
     }
-    sendToPlotter (ploGeometry) {
-        var data = this.getGcode(ploGeometry)
-        return this.request('plotter_draw', data)
+    sendToPlotter (geometries: Geometry[]) {
+        var data = this.getGcode(geometries)
+        return Axios.post('/plotter/draw', data)
     }
-    resetPlotter () {
-        return this.request('plotter_reset')
+    resetPlotter  () {
+        return Axios.get('/plotter/reset')
     }
-    listPlotter() {
-        return this.request('plotter_list_port').then(res => console.log(res))  
-    }
-    request (url, data = {}) {
-        return new Promise((resolve, reject) => {
-            var request = new XMLHttpRequest()
-            request.open('POST', `http://localhost:8888/${url}`, true)
-            request.setRequestHeader('Content-type', 'application/json; charset=utf-8')
-            request.onreadystatechange = () => {
-              if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
-                    resolve(request.response)
-              } else if (request.readyState === XMLHttpRequest.DONE) { reject(request) }
-            }
-            request.send(JSON.stringify({data: data}))
+    async listPlotter() {
+        return await Axios.post('/plotter/list').then(response => {
+            return response.data
+        }).catch(e => {
+            console.error('Plotter list Unavailable')
         })
     }
 }

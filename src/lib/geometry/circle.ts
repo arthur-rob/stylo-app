@@ -1,4 +1,4 @@
-import Geometry from '@/lib/geometry/index.ts'
+import Geometry from '@/lib/geometry/Index'
 
 export default class Circle extends Geometry {	
 	constructor(x = 0, y = 0, radius = 20, args = {}) {

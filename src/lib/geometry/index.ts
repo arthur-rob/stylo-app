@@ -1,10 +1,13 @@
+import { Coordinate, GeoOptions } from "@/models/lib"
+
 class Geometry {
-	constructor (args) {
+	path: Coordinate[]
+	name: string
+	constructor (args: Geometry) {
 		this.name = args.name || ""
 		this.path = args.path || []
-		this.type = args.type || ""
 	} 
-	draw (context, options = {}) {
+	draw (context: CanvasRenderingContext2D, options: GeoOptions = {}) {
         let scale = options.scale || 1
 		var coordStart = this.path[1]
 		context.beginPath()

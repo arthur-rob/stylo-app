@@ -1,12 +1,12 @@
+import '@/index.css'
 import { createApp } from 'vue'
-import './styles/index.scss'
-import App from './App.vue'
+import App from '@/App.vue'
 import { createPinia } from 'pinia'
+import Router from '@/Router'
 
 const pinia = createPinia()
 const app = createApp(App)
 
 app.use(pinia)
+app.use(Router)
 app.mount('#app')
-
-export { Stylo }
