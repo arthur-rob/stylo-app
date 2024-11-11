@@ -5,7 +5,7 @@ import Geometry from './geometry/Index'
 import axios from 'axios'
 
 const Axios = axios.create({
-    baseURL: 'http://localhost:8888/'
+    baseURL: 'http://localhost:3000/'
 })
 type size = 'A5' | 'A4'
 class Stylo {
@@ -79,7 +79,7 @@ class Stylo {
     }
     clear () {
         this.reset()
-        this.canvas.width = this.canvas.width
+        if (this.canvas) this.canvas.width = this.canvas.width
     }
     reset () {
         this.layers = [new Layer()]
@@ -91,15 +91,15 @@ class Stylo {
         if (typeof ploElements == 'undefined') ploElements = this.layers[0].geometries
         return Controls.generate(ploElements)
     }
-    sendToPlotter (geometries: Geometry[]) {
+    async sendToPlotter (geometries: Geometry[]) {
         var data = this.getGcode(geometries)
-        return Axios.post('/plotter/draw', data)
+        return Axios.post('/plotter/draw', { data })
     }
     resetPlotter  () {
         return Axios.get('/plotter/reset')
     }
     async listPlotter() {
-        return await Axios.post('/plotter/list').then(response => {
+        return await Axios.get('/plotter/list').then(response => {
             return response.data
         }).catch(e => {
             console.error('Plotter list Unavailable')

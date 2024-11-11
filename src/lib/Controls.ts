@@ -33,7 +33,7 @@ class Control {
             },  
             gcode: {
                 unit: 'G21',// units in mm by default
-                zAxisDown: "S1000 M3",
+                zAxisDown: "S100 M3",
                 zAxisUp: "S0 M5",
                 xAxis: 'X',
                 yAxis: 'Y',
@@ -90,7 +90,7 @@ class Control {
             commands = commands.concat(tmpSteps)
         }   
         commands = commands.concat(this.finalSteps)
-        return commands.join('\n')
+        return commands
     }
     comptudeCoordSteps (x: number, y: number) {
         return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1: x} Y${this.settings.gcode.revertAxisY ? y * -1: y}`
