@@ -13,7 +13,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref } from "vue"
+
 interface MenuItem {
     label: string
     href: string
