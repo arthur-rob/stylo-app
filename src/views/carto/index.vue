@@ -1,4 +1,3 @@
-<template></template>
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useIndexStore } from '@/store/index'
@@ -10,5 +9,3 @@ onMounted(async () => {
     stylo.render()
 })
 </script>
-
-<style scoped lang="scss"></style>

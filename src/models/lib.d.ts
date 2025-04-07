@@ -11,3 +11,4 @@ export interface Box {
     width: number
     height: number
 }
+export type PaperSize = 'A5' | 'A4'
