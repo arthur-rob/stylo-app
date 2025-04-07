@@ -50,7 +50,7 @@ class Control {
         this.isPreviousCoordGap = false
     }
     init() {
-        var setup = []
+        const setup = []
         setup.push(this.settings.gcode.unit)
         setup.push(this.settings.gcode.speed)
         setup.push(this.settings.gcode.mode)
@@ -58,13 +58,13 @@ class Control {
         return setup
     }
     backToZero() {
-        var finalSteps = []
+        const finalSteps = []
         finalSteps.push(this.settings.gcode.zAxisUp)
         finalSteps.push(`${this.settings.gcode.baseCommand} X0 Y0`)
         return finalSteps
     }
     getMinMaxPos(pos: Coordinate) {
-        var noNegative = {
+        const noNegative = {
             x: Math.max(pos.x, 0),
             y: Math.max(pos.y, 0),
         }
@@ -74,13 +74,13 @@ class Control {
         }
     }
     generate(geometries: Geometry[]) {
-        var commands = this.initialSteps
-        for (var i = 0; i < geometries.length; i++) {
-            var element = geometries[i]
-            var tmpSteps = this.beforeGenerateDraw(element)
-            for (var j = 0; j < element.path.length; j++) {
-                var coords = element.path[j]
-                var maxPos = this.getMinMaxPos(coords)
+        let commands = this.initialSteps
+        for (let i = 0; i < geometries.length; i++) {
+            const element = geometries[i]
+            const tmpSteps = this.beforeGenerateDraw(element)
+            for (let j = 0; j < element.path.length; j++) {
+                const coords = element.path[j]
+                const maxPos = this.getMinMaxPos(coords)
                 if (this.isPreviousCoordGap != coords.isGap)
                     tmpSteps.push(
                         coords.isGap
@@ -101,8 +101,8 @@ class Control {
         return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1 : x} Y${this.settings.gcode.revertAxisY ? y * -1 : y}`
     }
     beforeGenerateDraw(element: Geometry) {
-        var before = []
-        var coords = this.getMinMaxPos(element.path[0])
+        const before = []
+        const coords = this.getMinMaxPos(element.path[0])
         before.push(this.comptudeCoordSteps(coords.x, coords.y))
         before.push(this.settings.gcode.zAxisDown)
         this.isPreviousCoordGap = false

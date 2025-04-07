@@ -42,7 +42,7 @@ class Stylo {
         return format[size]
     }
     init(id: string, options = {}) {
-        var canvas = document.querySelector(
+        const canvas = document.querySelector(
             id || this.canvasSelector
         ) as HTMLCanvasElement
         if (!canvas) console.error("Can't find container element")
@@ -95,7 +95,7 @@ class Stylo {
         return Controls.generate(ploElements)
     }
     async sendToPlotter(geometries: Geometry[]) {
-        var data = this.getGcode(geometries)
+        const data = this.getGcode(geometries)
         return Axios.post('/plotter/draw', { data })
     }
     resetPlotter() {

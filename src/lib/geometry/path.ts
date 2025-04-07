@@ -6,7 +6,7 @@ class Path extends Geometry {
         this.path = this.create()
     }
     create() {
-        var points = this.points.map((el) => ({
+        const points = this.points.map((el) => ({
             x: el[0],
             y: el[1],
             isGap: false,

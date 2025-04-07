@@ -8,14 +8,14 @@ class Geometry {
         this.path = args.path || []
     }
     draw(context: CanvasRenderingContext2D, options: GeoOptions = {}) {
-        let scale = options.scale || 1
-        var coordStart = this.path[1]
+        const scale = options.scale || 1
+        const coordStart = this.path[1]
         context.beginPath()
         context.moveTo(coordStart.x * scale, coordStart.y * scale)
         context.lineWidth = 1
         context.strokeStyle = options.color || '#000000'
-        for (var i = 0; i < this.path.length; i++) {
-            var coord = this.path[i]
+        for (let i = 0; i < this.path.length; i++) {
+            const coord = this.path[i]
             coord.isGap
                 ? context.moveTo(coord.x * scale, coord.y * scale)
                 : context.lineTo(coord.x * scale, coord.y * scale)
@@ -24,7 +24,7 @@ class Geometry {
         context.closePath()
     }
     closeGeometry() {
-        var last = Object.assign(this.path[0], { isGap: false })
+        const last = Object.assign(this.path[0], { isGap: false })
         return this.path.push(last)
     }
 }

@@ -8,7 +8,7 @@ class Polygone extends Geometry {
         this.closeGeometry()
     }
     create() {
-        var points = this.points.map((el) => ({
+        const points = this.points.map((el) => ({
             x: el[0],
             y: el[1],
             isGap: false,

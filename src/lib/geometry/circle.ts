@@ -11,9 +11,9 @@ export default class Circle extends Geometry {
         this.closeGeometry()
     }
     create() {
-        var tmpPath = []
-        for (var i = 0; i < 2 * Math.PI; i += (2 * Math.PI) / this.resolution) {
-            var obj = {
+        const tmpPath = []
+        for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI) / this.resolution) {
+            const obj = {
                 x: Math.cos(i) * this.radius + this.x,
                 y: this.y - Math.sin(i) * this.radius,
                 isGap: false,
