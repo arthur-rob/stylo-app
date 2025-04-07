@@ -12,8 +12,8 @@ stylo.add(c1)
 //stylo.add(c2)
 
 onMounted(async () => {
-    stylo.init('#stylo', {renderSize: 2})
-    stylo.render()    
+    stylo.init('#stylo', { renderSize: 2 })
+    stylo.render()
     plotterList.value = await stylo.listPlotter()
 })
 

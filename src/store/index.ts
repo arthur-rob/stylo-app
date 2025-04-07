@@ -4,14 +4,14 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 const Axios = axios.create({
-    baseURL: 'http://localhost:3000/'
+    baseURL: 'http://localhost:3000/',
 })
 
 export const useIndexStore = defineStore('index', () => {
     const plotters = ref([])
     const stylo = new Stylo()
 
-    const syncPlotter =  async () => {
+    const syncPlotter = async () => {
         try {
             plotters.value = await Axios.get('/plotter/list')
         } catch (error) {
@@ -23,6 +23,6 @@ export const useIndexStore = defineStore('index', () => {
     return {
         stylo,
         plotters,
-        syncPlotter
-    };
-});
+        syncPlotter,
+    }
+})
