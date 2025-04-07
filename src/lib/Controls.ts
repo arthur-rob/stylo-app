@@ -1,5 +1,5 @@
-import Geometry from "@/lib/geometry/Index"
-import { Coordinate } from "@/models/lib"
+import Geometry from '@/lib/geometry/Index'
+import { Coordinate } from '@/models/lib'
 interface Settings {
     gcode: {
         unit: string
@@ -14,7 +14,7 @@ interface Settings {
         revertAxisY: boolean
     }
     layout: {
-        width: number,
+        width: number
         height: number
     }
 }
@@ -25,79 +25,84 @@ class Control {
     initialSteps: string[]
     gcodeCommands: string[]
     isPreviousCoordGap: boolean | undefined
-    constructor () {
+    constructor() {
         this.settings = {
             layout: {
                 width: 148,
-                height: 210
-            },  
+                height: 210,
+            },
             gcode: {
-                unit: 'G21',// units in mm by default
-                zAxisDown: "S100 M3",
-                zAxisUp: "S0 M5",
+                unit: 'G21', // units in mm by default
+                zAxisDown: 'S100 M3',
+                zAxisUp: 'S0 M5',
                 xAxis: 'X',
                 yAxis: 'Y',
                 revertAxisX: true,
                 revertAxisY: false,
-                baseCommand: "G01",
+                baseCommand: 'G01',
                 mode: 'E2 A1', // Servo mode in mm by default
-                speed: 'F5000'
-            }
+                speed: 'F5000',
+            },
         }
         this.initialSteps = this.init()
         this.finalSteps = this.backToZero()
         this.gcodeCommands = []
         this.isPreviousCoordGap = false
     }
-    init () {
-        var setup = []
+    init() {
+        const setup = []
         setup.push(this.settings.gcode.unit)
         setup.push(this.settings.gcode.speed)
         setup.push(this.settings.gcode.mode)
         setup.push(this.settings.gcode.zAxisUp)
         return setup
     }
-    backToZero () {
-        var finalSteps = []
+    backToZero() {
+        const finalSteps = []
         finalSteps.push(this.settings.gcode.zAxisUp)
         finalSteps.push(`${this.settings.gcode.baseCommand} X0 Y0`)
         return finalSteps
     }
-    getMinMaxPos (pos: Coordinate) {
-        var noNegative = {
+    getMinMaxPos(pos: Coordinate) {
+        const noNegative = {
             x: Math.max(pos.x, 0),
-            y: Math.max(pos.y, 0)
+            y: Math.max(pos.y, 0),
         }
         return {
             x: Math.min(noNegative.x, this.settings.layout.width),
-            y: Math.min(noNegative.y, this.settings.layout.height)
+            y: Math.min(noNegative.y, this.settings.layout.height),
         }
     }
-    generate (geometries: Geometry[]) {
-        var commands = this.initialSteps
-        for (var i = 0; i < geometries.length; i++) {
-            var element = geometries[i]
-            var tmpSteps = this.beforeGenerateDraw(element)
-            for (var j = 0; j < element.path.length; j++) {
-                var coords = element.path[j]
-                var maxPos = this.getMinMaxPos(coords)
-                if (this.isPreviousCoordGap != coords.isGap) tmpSteps.push(coords.isGap ? this.settings.gcode.zAxisUp : this.settings.gcode.zAxisDown )
+    generate(geometries: Geometry[]) {
+        let commands = this.initialSteps
+        for (let i = 0; i < geometries.length; i++) {
+            const element = geometries[i]
+            const tmpSteps = this.beforeGenerateDraw(element)
+            for (let j = 0; j < element.path.length; j++) {
+                const coords = element.path[j]
+                const maxPos = this.getMinMaxPos(coords)
+                if (this.isPreviousCoordGap != coords.isGap)
+                    tmpSteps.push(
+                        coords.isGap
+                            ? this.settings.gcode.zAxisUp
+                            : this.settings.gcode.zAxisDown
+                    )
                 tmpSteps.push(this.comptudeCoordSteps(maxPos.x, maxPos.y))
                 this.isPreviousCoordGap = coords.isGap
             }
             tmpSteps.push(this.settings.gcode.zAxisUp)
             this.isPreviousCoordGap = true
             commands = commands.concat(tmpSteps)
-        }   
+        }
         commands = commands.concat(this.finalSteps)
         return commands
     }
-    comptudeCoordSteps (x: number, y: number) {
-        return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1: x} Y${this.settings.gcode.revertAxisY ? y * -1: y}`
+    comptudeCoordSteps(x: number, y: number) {
+        return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1 : x} Y${this.settings.gcode.revertAxisY ? y * -1 : y}`
     }
-    beforeGenerateDraw (element: Geometry) {
-        var before = []
-        var coords = this.getMinMaxPos(element.path[0])
+    beforeGenerateDraw(element: Geometry) {
+        const before = []
+        const coords = this.getMinMaxPos(element.path[0])
         before.push(this.comptudeCoordSteps(coords.x, coords.y))
         before.push(this.settings.gcode.zAxisDown)
         this.isPreviousCoordGap = false

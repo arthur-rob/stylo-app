@@ -6,7 +6,7 @@
     <ActionBars />
 </template>
 <script lang="ts" setup>
-import '@/index.css'    
+import '@/index.css'
 import { useIndexStore } from '@/store/index'
 import Menu from '@/components/menu.vue'
 import ActionBars from '@/components/actions.vue'

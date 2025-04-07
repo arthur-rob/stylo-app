@@ -3,8 +3,12 @@
         <ul class="flex flex space-x-2">
             <!-- Desktop Navigation Links -->
             <li>
-                <RouterLink to="/" class="block px-4 py-2 rounded-md">Home</RouterLink>
-                <RouterLink to="/carto" class="block px-4 py-2 rounded-md">Carto</RouterLink>
+                <RouterLink to="/" class="block px-4 py-2 rounded-md"
+                    >Home</RouterLink
+                >
+                <RouterLink to="/carto" class="block px-4 py-2 rounded-md"
+                    >Carto</RouterLink
+                >
             </li>
         </ul>
     </nav>
@@ -13,8 +17,6 @@
 import { ref } from 'vue'
 import { useIndexStore } from '@/store/index'
 
-const menuItems = ref([
-    { text: 'Home', link: '/' }
-])
+const menuItems = ref([{ text: 'Home', link: '/' }])
 const indexStore = useIndexStore()
 </script>

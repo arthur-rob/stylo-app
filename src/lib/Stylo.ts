@@ -5,7 +5,7 @@ import Geometry from './geometry/Index'
 import axios from 'axios'
 
 const Axios = axios.create({
-    baseURL: 'http://localhost:3000/'
+    baseURL: 'http://localhost:3000/',
 })
 type size = 'A5' | 'A4'
 class Stylo {
@@ -18,8 +18,8 @@ class Stylo {
     layers: Layer[]
     context: CanvasRenderingContext2D | null
 
-    constructor (size: size = 'A4', args: Partial<Stylo> = {}) {
-        this.canvasSelector = "#stylo"
+    constructor(size: size = 'A4', args: Partial<Stylo> = {}) {
+        this.canvasSelector = '#stylo'
         this.canvas = undefined
         this.mapedSize = this.mapSize(size)
         this.scale = args.scale || 1
@@ -28,22 +28,24 @@ class Stylo {
         this.layers = [new Layer()]
         this.context = null
     }
-    mapSize (size: size): Box {
+    mapSize(size: size): Box {
         const format = {
-            'A5' : {
+            A5: {
                 width: 148,
-                height: 210
+                height: 210,
             },
-            'A4': {
+            A4: {
                 width: 210,
-                height: 297
-            }
+                height: 297,
+            },
         }
         return format[size]
     }
-    init (id: string, options = { }) {
-        var canvas = document.querySelector(id || this.canvasSelector) as HTMLCanvasElement
-        if (!canvas) console.error('Can\'t find container element')
+    init(id: string, options = {}) {
+        const canvas = document.querySelector(
+            id || this.canvasSelector
+        ) as HTMLCanvasElement
+        if (!canvas) console.error("Can't find container element")
         canvas.width = options.width || this.width
         canvas.height = options.height || this.height
         this.canvas = canvas
@@ -52,58 +54,61 @@ class Stylo {
         this.scaleCanvas()
 
         this.context = canvas.getContext('2d')
-        
+
         return canvas
     }
-    getContext () {
+    getContext() {
         return this.context
     }
-    scaleCanvas () {
+    scaleCanvas() {
         if (!this.canvas) return
         this.canvas.width = this.width * this.scale
         this.canvas.height = this.height * this.scale
     }
-    add (element: Geometry, layerId: string) {
+    add(element: Geometry, layerId: string) {
         if (!element) return console.log('Argument need to be a geometry')
-        if(!layerId) this.layers[0].add(element)
+        if (!layerId) this.layers[0].add(element)
         else {
             console.error('Not Implemented')
         }
     }
-    render () {
+    render() {
         this.scaleCanvas()
         if (this.layers.length < 1) return
-        this.layers.forEach(layer => {
+        this.layers.forEach((layer) => {
             layer.render(this.context, this.scale)
         })
     }
-    clear () {
+    clear() {
         this.reset()
         if (this.canvas) this.canvas.width = this.canvas.width
     }
-    reset () {
+    reset() {
         this.layers = [new Layer()]
     }
-    getGeometriesByLayer (layerId) {
+    getGeometriesByLayer(layerId) {
         // Implement into Geometries First
     }
-    getGcode (ploElements?: Geometry[]) {
-        if (typeof ploElements == 'undefined') ploElements = this.layers[0].geometries
+    getGcode(ploElements?: Geometry[]) {
+        if (typeof ploElements == 'undefined')
+            ploElements = this.layers[0].geometries
         return Controls.generate(ploElements)
     }
-    async sendToPlotter (geometries: Geometry[]) {
-        var data = this.getGcode(geometries)
+    async sendToPlotter(geometries: Geometry[]) {
+        const data = this.getGcode(geometries)
         return Axios.post('/plotter/draw', { data })
     }
-    resetPlotter  () {
+    resetPlotter() {
         return Axios.get('/plotter/reset')
     }
     async listPlotter() {
-        return await Axios.get('/plotter/list').then(response => {
-            return response.data
-        }).catch(e => {
-            console.error('Plotter list Unavailable')
-        })
+        return await Axios.get('/plotter/list')
+            .then((response) => {
+                return response.data
+            })
+            .catch((e) => {
+                console.error('Plotter list Unavailable')
+            })
     }
 }
 export default Stylo
