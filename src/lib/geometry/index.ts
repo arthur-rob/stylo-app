@@ -16,9 +16,8 @@ class Geometry {
         context.strokeStyle = options.color || '#000000'
         for (let i = 0; i < this.path.length; i++) {
             const coord = this.path[i]
-            coord.isGap
-                ? context.moveTo(coord.x * scale, coord.y * scale)
-                : context.lineTo(coord.x * scale, coord.y * scale)
+            if (coord.isGap) context.moveTo(coord.x * scale, coord.y * scale)
+            else context.lineTo(coord.x * scale, coord.y * scale)
         }
         context.stroke()
         context.closePath()

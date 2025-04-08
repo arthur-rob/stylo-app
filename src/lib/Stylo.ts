@@ -1,13 +1,12 @@
 import Layer from '@/lib/Layer'
 import Controls from '@/lib/Controls'
-import { Box } from '@/models/lib'
+import { Box, PaperSize } from '@/models/lib'
 import Geometry from './geometry/Index'
 import axios from 'axios'
 
 const Axios = axios.create({
     baseURL: 'http://localhost:3000/',
 })
-type size = 'A5' | 'A4'
 class Stylo {
     canvasSelector: string
     canvas?: HTMLCanvasElement
@@ -18,7 +17,7 @@ class Stylo {
     layers: Layer[]
     context: CanvasRenderingContext2D | null
 
-    constructor(size: size = 'A4', args: Partial<Stylo> = {}) {
+    constructor(size: PaperSize = 'A4', args: Partial<Stylo> = {}) {
         this.canvasSelector = '#stylo'
         this.canvas = undefined
         this.mapedSize = this.mapSize(size)
@@ -28,7 +27,7 @@ class Stylo {
         this.layers = [new Layer()]
         this.context = null
     }
-    mapSize(size: size): Box {
+    mapSize(size: PaperSize): Box {
         const format = {
             A5: {
                 width: 148,
@@ -65,7 +64,7 @@ class Stylo {
         this.canvas.width = this.width * this.scale
         this.canvas.height = this.height * this.scale
     }
-    add(element: Geometry, layerId: string) {
+    add(element: Geometry, layerId?: string) {
         if (!element) return console.log('Argument need to be a geometry')
         if (!layerId) this.layers[0].add(element)
         else {
@@ -81,12 +80,13 @@ class Stylo {
     }
     clear() {
         this.reset()
+        // eslint-disable-next-line no-self-assign
         if (this.canvas) this.canvas.width = this.canvas.width
     }
     reset() {
         this.layers = [new Layer()]
     }
-    getGeometriesByLayer(layerId) {
+    getGeometriesByLayer() {
         // Implement into Geometries First
     }
     getGcode(ploElements?: Geometry[]) {
@@ -106,7 +106,7 @@ class Stylo {
             .then((response) => {
                 return response.data
             })
-            .catch((e) => {
+            .catch(() => {
                 console.error('Plotter list Unavailable')
             })
     }

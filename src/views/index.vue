@@ -1,4 +1,3 @@
-<template></template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useIndexStore } from '@/store/index'
@@ -9,18 +8,11 @@ const plotterList = ref<string[]>()
 const c1 = new Circle(50, 40, 10)
 const c2 = new Circle(20, 20, 10)
 stylo.add(c1)
-//stylo.add(c2)
+stylo.add(c2)
 
 onMounted(async () => {
     stylo.init('#stylo', { renderSize: 2 })
     stylo.render()
     plotterList.value = await stylo.listPlotter()
 })
-
-const generate = () => {
-    console.log(stylo.getGcode())
-}
-const draw = () => {
-    stylo.sendToPlotter()
-}
 </script>

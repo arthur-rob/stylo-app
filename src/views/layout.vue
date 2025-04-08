@@ -19,17 +19,6 @@
         </div>
     </div>
 </template>
-<script setup lang="ts">
-interface MenuItem {
-    label: string
-    href: string
-    icon: string
-}
-interface MenuCat {
-    label: string
-    items: MenuItem[]
-}
-</script>
 <style scoped lang="scss">
 .side-bar {
     height: 100dvh;
