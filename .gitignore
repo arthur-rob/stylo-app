@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
+public/output.css
 venv/
 .vscode/
