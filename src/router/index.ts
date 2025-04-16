@@ -9,6 +9,6 @@ export const routes = [
 
 export default createRouter({
     history: createWebHashHistory(),
-    linkActiveClass: 'bg-amber-100 text-amber-700',
+    linkActiveClass: 'bg-gray-600 text-white',
     routes,
 })

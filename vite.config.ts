@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vitejs.dev/config/
 export default defineConfig({
     resolve: {
-        extensions: ['.js', '.vue', '.ts'],
+        extensions: ['.js', '.vue', '.ts', '.css'],
         alias: {
             '@': resolve(__dirname, './src'),
         },
