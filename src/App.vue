@@ -5,7 +5,6 @@
     </div>
 </template>
 <script lang="ts" setup>
-import '@/index.css'
 import { useIndexStore } from '@/store/index'
 import StyloMenu from '@/components/styloMenu.vue'
 
@@ -14,14 +13,22 @@ indexStore.syncPlotter()
 </script>
 <style lang="scss" scoped>
 .app-index {
-    background-image: repeating-linear-gradient(
-        315deg,
-        var(--color-gray-700) 0,
-        var(--color-gray-700) 1px,
-        transparent 0,
-        transparent 50%
-    );
+    background-image:
+        repeating-linear-gradient(
+            315deg,
+            var(--color-gray-700) 0,
+            var(--color-gray-700) 1px,
+            transparent 0,
+            transparent 50%
+        ),
+        repeating-linear-gradient(
+            45deg,
+            var(--color-gray-700) 0,
+            var(--color-gray-700) 1px,
+            transparent 0,
+            transparent 50%
+        );
     background-attachment: fixed;
-    background-size: 10px 10px;
+    background-size: 30px 30px;
 }
 </style>
