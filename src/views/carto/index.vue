@@ -1,4 +1,8 @@
+<template>
+    <EditorLayout> Hello </EditorLayout>
+</template>
 <script setup lang="ts">
+import EditorLayout from '@/layouts/EditorLayout.vue'
 import { onMounted } from 'vue'
 import { useIndexStore } from '@/store/index'
 
