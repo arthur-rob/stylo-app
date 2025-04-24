@@ -1,5 +1,4 @@
 import axios from 'axios'
-import Stylo from '@/lib/Stylo'
 import { Plotter } from '@/models/plotter'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -11,7 +10,7 @@ const Axios = axios.create({
 export const useIndexStore = defineStore('index', () => {
     const plotters = ref<Plotter[]>([])
     const activePlotter = ref<Plotter | null>(null)
-    const stylo = new Stylo()
+    const gCode = ref<string>('')
 
     const syncPlotter = async () => {
         try {
@@ -25,8 +24,8 @@ export const useIndexStore = defineStore('index', () => {
     }
 
     return {
-        stylo,
         plotters,
+        gCode,
         syncPlotter,
         activePlotter,
     }
