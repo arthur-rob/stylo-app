@@ -96,7 +96,7 @@ class Stylo {
     }
     async sendToPlotter(geometries: Geometry[]) {
         const data = this.getGcode(geometries)
-        return Axios.post('/plotter/draw', { data })
+        return Axios.post('/plotter/draw', { gcode: data, plotterId: 'stylo' })
     }
     resetPlotter() {
         return Axios.get('/plotter/reset')
