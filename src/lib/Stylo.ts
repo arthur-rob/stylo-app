@@ -1,12 +1,8 @@
 import Layer from '@/lib/Layer'
 import Controls from '@/lib/Controls'
 import { Box, PaperSize } from '@/models/lib'
-import Geometry from './geometry/Index'
-import axios from 'axios'
+import Geometry from '@/lib/geometry/Geometry'
 
-const Axios = axios.create({
-    baseURL: 'http://localhost:3000/',
-})
 class Stylo {
     canvasSelector: string
     canvas?: HTMLCanvasElement
@@ -93,22 +89,6 @@ class Stylo {
         if (typeof ploElements == 'undefined')
             ploElements = this.layers[0].geometries
         return Controls.generate(ploElements)
-    }
-    async sendToPlotter(geometries: Geometry[]) {
-        const data = this.getGcode(geometries)
-        return Axios.post('/plotter/draw', { gcode: data, plotterId: 'stylo' })
-    }
-    resetPlotter() {
-        return Axios.get('/plotter/reset')
-    }
-    async listPlotter() {
-        return await Axios.get('/plotter/list')
-            .then((response) => {
-                return response.data
-            })
-            .catch(() => {
-                console.error('Plotter list Unavailable')
-            })
     }
 }
 export default Stylo

@@ -1,25 +1,30 @@
-import Geometry from '@/lib/geometry/Index'
+import Vector from '@/lib/core/Vector'
+import Geometry from '@/lib/geometry/Geometry'
 
+interface CircleArgs {
+    resolution?: number
+}
 export default class Circle extends Geometry {
-    constructor(x = 0, y = 0, radius = 20, args = {}) {
-        super({ type: 'circle' })
-        this.x = x
-        this.resolution = args.resolution || 99
-        this.y = y
+    center: Vector
+    resolution: number
+    radius: number
+
+    constructor(x = 0, y = 0, radius = 20, args: CircleArgs = {}) {
+        super({ path: [], type: 'circle' })
+        this.center = new Vector(x, y)
         this.radius = radius
+        this.resolution = args.resolution || 99
         this.path = this.create()
-        this.closeGeometry()
     }
-    create() {
-        const tmpPath = []
+
+    create(): Vector[] {
+        const circlePath: Vector[] = []
         for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI) / this.resolution) {
-            const obj = {
-                x: Math.cos(i) * this.radius + this.x,
-                y: this.y - Math.sin(i) * this.radius,
-                isGap: false,
-            }
-            tmpPath.push(obj)
+            const obj = this.center.add(
+                new Vector(Math.cos(i) * this.radius, Math.sin(i) * this.radius)
+            )
+            circlePath.push(obj)
         }
-        return tmpPath
+        return circlePath
     }
 }
