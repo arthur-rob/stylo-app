@@ -1,4 +1,4 @@
-import Geometry from './geometry/Index'
+import Geometry from './geometry/Geometry'
 
 class Layer {
     id?: string

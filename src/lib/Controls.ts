@@ -1,4 +1,4 @@
-import Geometry from '@/lib/geometry/Index'
+import Geometry from '@/lib/geometry/Geometry'
 import { Coordinate } from '@/models/lib'
 interface Settings {
     gcode: {
