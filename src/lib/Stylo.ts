@@ -45,7 +45,8 @@ class Stylo {
         canvas.height = options.height || this.height
         this.canvas = canvas
 
-        this.scale = options.renderSize || 1
+        this.scale = options.scale || 1
+        this.renderSize = options.renderSize || 1
         this.scaleCanvas()
 
         this.context = canvas.getContext('2d')
@@ -57,8 +58,8 @@ class Stylo {
     }
     scaleCanvas() {
         if (!this.canvas) return
-        this.canvas.width = this.width * this.scale
-        this.canvas.height = this.height * this.scale
+        this.canvas.width = this.width * this.renderSize
+        this.canvas.height = this.height * this.renderSize
     }
     add(element: Geometry, layerId?: string) {
         if (!element) return console.log('Argument need to be a geometry')
