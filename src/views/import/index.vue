@@ -23,14 +23,16 @@
 
 <script setup lang="ts">
 import EditorLayout from '@/layouts/EditorLayout.vue'
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import Path from '@/lib/geometry/Path'
+import Vector from '@/lib/core/Vector'
+import { parseSVG } from 'svg-path-parser'
 import Stylo from '@/lib/Stylo'
 
 const stylo = new Stylo()
-const SVG = ref<string>('')
 
 onMounted(async () => {
-    stylo.init('#stylo', { renderSize: 2 })
+    stylo.init('#stylo', { renderSize: 2, scale: 0.2 })
     stylo.render()
 })
 
@@ -43,7 +45,7 @@ const handleFileImport = (event: Event) => {
 
     reader.onload = (e) => {
         const svgContent = e.target?.result as string
-        SVG.value = svgContent
+        parseSVGContent(svgContent)
     }
 
     reader.onerror = (e) => {
@@ -51,6 +53,40 @@ const handleFileImport = (event: Event) => {
     }
 
     reader.readAsText(file)
+}
+
+const parseSVGContent = (svgContent: string) => {
+    const parser = new DOMParser()
+    const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml')
+    const paths = svgDoc.querySelectorAll('path')
+    const parsedPaths = []
+
+    paths.forEach((path) => {
+        const d = path.getAttribute('d')
+        if (!d) return
+        parsedPaths.push(parseSVG(d))
+    })
+    drawPaths(parsedPaths)
+}
+const drawPaths = (paths) => {
+    paths.forEach((path) => {
+        const newPath = path.map((segment) => {
+            if (segment.code === 'M') {
+                return new Vector(segment.x, segment.y)
+            } else if (segment.code === 'L') {
+                return new Vector(segment.x, segment.y)
+            } else if (segment.code === 'C') {
+                return [
+                    new Vector(segment.x1, segment.y1),
+                    new Vector(segment.x2, segment.y2),
+                    new Vector(segment.x, segment.y),
+                ]
+            }
+        }) as Vector[]
+        stylo.add(new Path([...newPath]))
+    })
+    stylo.render()
+    console.log('Paths:', paths)
 }
 </script>
 <style scoped lang="scss"></style>
