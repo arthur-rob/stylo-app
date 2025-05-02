@@ -10,7 +10,7 @@ const Axios = axios.create({
 export const useIndexStore = defineStore('index', () => {
     const plotters = ref<Plotter[]>([])
     const activePlotter = ref<Plotter | null>(null)
-    const gCode = ref<string>('')
+    const gCode = ref<string[]>([])
 
     const syncPlotter = async () => {
         try {

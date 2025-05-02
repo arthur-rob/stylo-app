@@ -13,7 +13,7 @@
             />
             <p class="font-semibold text-lg">Stylo</p>
         </div>
-        <nav class="stylo-nav h-full p-2">
+        <nav class="stylo-nav h-full p-2 bg-base-200 rounded-box">
             <RouterLink
                 to="/"
                 class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
