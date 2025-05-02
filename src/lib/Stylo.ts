@@ -3,21 +3,29 @@ import Controls from '@/lib/Controls'
 import { Box, PaperSize } from '@/models/lib'
 import Geometry from '@/lib/geometry/Geometry'
 
+interface StyloArgs {
+    width?: number
+    height?: number
+    renderSize?: number
+    canvasSelector?: string
+    canvas?: HTMLCanvasElement
+    mapedSize?: Box
+}
 class Stylo {
     canvasSelector: string
     canvas?: HTMLCanvasElement
     mapedSize: Box
-    scale: number
+    renderSize: number
     width: number
     height: number
     layers: Layer[]
     context: CanvasRenderingContext2D | null
 
-    constructor(size: PaperSize = 'A4', args: Partial<Stylo> = {}) {
+    constructor(size: PaperSize = 'A4', args: StyloArgs = {}) {
         this.canvasSelector = '#stylo'
         this.canvas = undefined
         this.mapedSize = this.mapSize(size)
-        this.scale = args.scale || 1
+        this.renderSize = args.renderSize || 1
         this.width = args.width || this.mapedSize.width
         this.height = args.height || this.mapedSize.height
         this.layers = [new Layer()]
@@ -36,7 +44,7 @@ class Stylo {
         }
         return format[size]
     }
-    init(id: string, options = {}) {
+    init(id: string, options: StyloArgs = {}) {
         const canvas = document.querySelector(
             id || this.canvasSelector
         ) as HTMLCanvasElement
@@ -45,7 +53,6 @@ class Stylo {
         canvas.height = options.height || this.height
         this.canvas = canvas
 
-        this.scale = options.scale || 1
         this.renderSize = options.renderSize || 1
         this.scaleCanvas()
 
@@ -70,9 +77,9 @@ class Stylo {
     }
     render() {
         this.scaleCanvas()
-        if (this.layers.length < 1) return
+        if (this.layers.length < 1 || !this.context) return
         this.layers.forEach((layer) => {
-            layer.render(this.context, this.scale)
+            layer.render(this.context)
         })
     }
     clear() {
@@ -83,13 +90,10 @@ class Stylo {
     reset() {
         this.layers = [new Layer()]
     }
-    getGeometriesByLayer() {
-        // Implement into Geometries First
-    }
-    getGcode(ploElements?: Geometry[]) {
-        if (typeof ploElements == 'undefined')
-            ploElements = this.layers[0].geometries
-        return Controls.generate(ploElements)
+    generateGCode(geometries?: Geometry[]): string[] {
+        if (typeof geometries == 'undefined')
+            geometries = this.layers[0].geometries
+        return Controls.generate(geometries)
     }
 }
 export default Stylo

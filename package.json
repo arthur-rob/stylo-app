@@ -33,6 +33,7 @@
         "@tailwindcss/vite": "^4.1.4",
         "@vitejs/plugin-vue": "^4.6.2",
         "autoprefixer": "^10.4.18",
+        "daisyui": "^5.0.35",
         "eslint": "^9.24.0",
         "eslint-config-prettier": "^10.1.1",
         "eslint-plugin-vue": "^10.0.0",

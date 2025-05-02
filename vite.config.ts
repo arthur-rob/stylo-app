@@ -10,5 +10,5 @@ export default defineConfig({
             '@': resolve(__dirname, './src'),
         },
     },
-    plugins: [vue(), tailwindcss()],
+    plugins: [tailwindcss(), vue()],
 })

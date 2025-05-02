@@ -10,7 +10,7 @@
                     <span class="sr-only cursor-pointer">Svg File</span>
                     <input
                         id="file_input"
-                        class="block w-full text-sm text-gray-500 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:disabled:opacity-50 file:disabled:pointer-events-none cursor-pointer dark:text-neutral-500 dark:file:bg-blue-500 dark:hover:file:bg-blue-400"
+                        class="w-full text-sm file-input file-input-ghost"
                         type="file"
                         accept=".svg"
                         @change="handleFileImport"
@@ -25,10 +25,12 @@
 import EditorLayout from '@/layouts/EditorLayout.vue'
 import { onMounted } from 'vue'
 import Path from '@/lib/geometry/Path'
-import Vector from '@/lib/core/Vector'
+import { svgToVector, SvgParsedPath } from '@/lib/SvgToVector'
 import { parseSVG } from 'svg-path-parser'
 import Stylo from '@/lib/Stylo'
+import { useIndexStore } from '@/store/index'
 
+const store = useIndexStore()
 const stylo = new Stylo()
 
 onMounted(async () => {
@@ -59,7 +61,7 @@ const parseSVGContent = (svgContent: string) => {
     const parser = new DOMParser()
     const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml')
     const paths = svgDoc.querySelectorAll('path')
-    const parsedPaths = []
+    const parsedPaths: SvgParsedPath[] = []
 
     paths.forEach((path) => {
         const d = path.getAttribute('d')
@@ -68,25 +70,15 @@ const parseSVGContent = (svgContent: string) => {
     })
     drawPaths(parsedPaths)
 }
-const drawPaths = (paths) => {
-    paths.forEach((path) => {
-        const newPath = path.map((segment) => {
-            if (segment.code === 'M') {
-                return new Vector(segment.x, segment.y)
-            } else if (segment.code === 'L') {
-                return new Vector(segment.x, segment.y)
-            } else if (segment.code === 'C') {
-                return [
-                    new Vector(segment.x1, segment.y1),
-                    new Vector(segment.x2, segment.y2),
-                    new Vector(segment.x, segment.y),
-                ]
-            }
-        }) as Vector[]
-        stylo.add(new Path([...newPath]))
+const drawPaths = (paths: SvgParsedPath[][]) => {
+    paths.forEach((pathData) => {
+        const newPath = svgToVector(pathData)
+        stylo.add(new Path(newPath))
     })
+    const scale = 0.1
+    stylo.layers[0].scale(scale)
     stylo.render()
-    console.log('Paths:', paths)
+    store.gCode = stylo.generateGCode()
 }
 </script>
 <style scoped lang="scss"></style>
