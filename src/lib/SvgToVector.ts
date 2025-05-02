@@ -43,6 +43,11 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[] => {
             case 'Z':
                 vectors.push(new Vector(segment.x, segment.y).add(vectoToAdd))
                 break
+            default:
+                console.warn(
+                    `Unsupported SVG command: ${segment.code} at index ${index}`
+                )
+                break
         }
     })
     return vectors
