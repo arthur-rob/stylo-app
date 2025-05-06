@@ -72,8 +72,10 @@ const parseSVGContent = (svgContent: string) => {
 }
 const drawPaths = (paths: SvgParsedPath[][]) => {
     paths.forEach((pathData) => {
-        const newPath = svgToVector(pathData)
-        stylo.add(new Path(newPath))
+        const newPathsCollection = svgToVector(pathData)
+        newPathsCollection.forEach((newPath) => {
+            stylo.add(new Path(newPath))
+        })
     })
     const scale = 0.1
     stylo.layers[0].scale(scale)
