@@ -1,3 +1,4 @@
+const PRECISION = 1000
 export default class Vector {
     constructor(
         public x: number,
@@ -7,12 +8,16 @@ export default class Vector {
         this.y = y
     }
     add(v: Vector): Vector {
-        return new Vector(this.x + v.x, this.y + v.y)
+        const roundedX = this.roundToTwoDecimals(this.x + v.x)
+        const roundedY = this.roundToTwoDecimals(this.y + v.y)
+        return new Vector(roundedX, roundedY)
     }
 
     // Subtract another vector
     subtract(v: Vector): Vector {
-        return new Vector(this.x - v.x, this.y - v.y)
+        const roundedX = this.roundToTwoDecimals(this.x - v.x)
+        const roundedY = this.roundToTwoDecimals(this.y - v.y)
+        return new Vector(roundedX, roundedY)
     }
 
     // Multiply by scalar
@@ -23,6 +28,11 @@ export default class Vector {
     // Dot product
     dot(v: Vector): number {
         return this.x * v.x + this.y * v.y
+    }
+
+    // round to two decimals
+    roundToTwoDecimals(value: number): number {
+        return Math.round(value * PRECISION) / PRECISION
     }
 
     // Magnitude (length of the vector)
