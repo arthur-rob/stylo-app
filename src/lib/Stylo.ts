@@ -1,27 +1,31 @@
 import Layer from '@/lib/Layer'
 import Controls from '@/lib/Controls'
 import { Box, PaperSize } from '@/models/lib'
-import Geometry from './geometry/Index'
-import axios from 'axios'
+import Geometry from '@/lib/geometry/Geometry'
 
-const Axios = axios.create({
-    baseURL: 'http://localhost:3000/',
-})
+interface StyloArgs {
+    width?: number
+    height?: number
+    renderSize?: number
+    canvasSelector?: string
+    canvas?: HTMLCanvasElement
+    mapedSize?: Box
+}
 class Stylo {
     canvasSelector: string
     canvas?: HTMLCanvasElement
     mapedSize: Box
-    scale: number
+    renderSize: number
     width: number
     height: number
     layers: Layer[]
     context: CanvasRenderingContext2D | null
 
-    constructor(size: PaperSize = 'A4', args: Partial<Stylo> = {}) {
+    constructor(size: PaperSize = 'A4', args: StyloArgs = {}) {
         this.canvasSelector = '#stylo'
         this.canvas = undefined
         this.mapedSize = this.mapSize(size)
-        this.scale = args.scale || 1
+        this.renderSize = args.renderSize || 1
         this.width = args.width || this.mapedSize.width
         this.height = args.height || this.mapedSize.height
         this.layers = [new Layer()]
@@ -40,7 +44,7 @@ class Stylo {
         }
         return format[size]
     }
-    init(id: string, options = {}) {
+    init(id: string, options: StyloArgs = {}) {
         const canvas = document.querySelector(
             id || this.canvasSelector
         ) as HTMLCanvasElement
@@ -49,7 +53,7 @@ class Stylo {
         canvas.height = options.height || this.height
         this.canvas = canvas
 
-        this.scale = options.renderSize || 1
+        this.renderSize = options.renderSize || 1
         this.scaleCanvas()
 
         this.context = canvas.getContext('2d')
@@ -61,8 +65,8 @@ class Stylo {
     }
     scaleCanvas() {
         if (!this.canvas) return
-        this.canvas.width = this.width * this.scale
-        this.canvas.height = this.height * this.scale
+        this.canvas.width = this.width * this.renderSize
+        this.canvas.height = this.height * this.renderSize
     }
     add(element: Geometry, layerId?: string) {
         if (!element) return console.log('Argument need to be a geometry')
@@ -73,9 +77,9 @@ class Stylo {
     }
     render() {
         this.scaleCanvas()
-        if (this.layers.length < 1) return
+        if (this.layers.length < 1 || !this.context) return
         this.layers.forEach((layer) => {
-            layer.render(this.context, this.scale)
+            layer.render(this.context)
         })
     }
     clear() {
@@ -86,29 +90,10 @@ class Stylo {
     reset() {
         this.layers = [new Layer()]
     }
-    getGeometriesByLayer() {
-        // Implement into Geometries First
-    }
-    getGcode(ploElements?: Geometry[]) {
-        if (typeof ploElements == 'undefined')
-            ploElements = this.layers[0].geometries
-        return Controls.generate(ploElements)
-    }
-    async sendToPlotter(geometries: Geometry[]) {
-        const data = this.getGcode(geometries)
-        return Axios.post('/plotter/draw', { data })
-    }
-    resetPlotter() {
-        return Axios.get('/plotter/reset')
-    }
-    async listPlotter() {
-        return await Axios.get('/plotter/list')
-            .then((response) => {
-                return response.data
-            })
-            .catch(() => {
-                console.error('Plotter list Unavailable')
-            })
+    generateGCode(geometries?: Geometry[]): string[] {
+        if (typeof geometries == 'undefined')
+            geometries = this.layers[0].geometries
+        return Controls.generate(geometries)
     }
 }
 export default Stylo

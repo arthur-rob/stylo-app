@@ -1,4 +1,10 @@
-import Geometry from './geometry/Index'
+import Geometry from './geometry/Geometry'
+
+interface LayerArgs {
+    id?: string
+    strokeWidth?: number
+    color?: string
+}
 
 class Layer {
     id?: string
@@ -6,7 +12,7 @@ class Layer {
     strokeWidth?: number
     color?: string
 
-    constructor(layerParams: Partial<Layer> = {}) {
+    constructor(layerParams: LayerArgs = {}) {
         this.id = layerParams.id || this.generateId()
         this.geometries = []
         this.strokeWidth = layerParams.strokeWidth || 1
@@ -18,9 +24,14 @@ class Layer {
     add(element: Geometry) {
         this.geometries.push(element)
     }
-    render(context: CanvasRenderingContext2D, scale: number) {
+    scale(factor: number) {
+        this.geometries.forEach((geo) => {
+            geo.path = geo.path.map((vector) => vector.scale(factor))
+        })
+    }
+    render(context: CanvasRenderingContext2D) {
         this.geometries.forEach((geo) =>
-            geo.draw(context, { scale: scale, color: this.color })
+            geo.draw(context, { color: this.color })
         )
     }
 }

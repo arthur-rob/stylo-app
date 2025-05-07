@@ -10,5 +10,9 @@ export default defineConfig({
             '@': resolve(__dirname, './src'),
         },
     },
-    plugins: [vue(), tailwindcss()],
+    plugins: [tailwindcss(), vue()],
+    test: {
+        globals: true,
+        environment: 'jsdom',
+    },
 })

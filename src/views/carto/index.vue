@@ -1,12 +1,12 @@
 <template>
-    <EditorLayout> Hello </EditorLayout>
+    <EditorLayout> </EditorLayout>
 </template>
 <script setup lang="ts">
 import EditorLayout from '@/layouts/EditorLayout.vue'
 import { onMounted } from 'vue'
-import { useIndexStore } from '@/store/index'
+import Stylo from '@/lib/Stylo'
 
-const stylo = useIndexStore().stylo
+const stylo = new Stylo()
 
 onMounted(async () => {
     stylo.init('#stylo', { renderSize: 2 })

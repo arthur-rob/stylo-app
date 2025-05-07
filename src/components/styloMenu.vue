@@ -1,6 +1,6 @@
 <template>
     <div
-        class="stylo-menu h-screen border-r border-gray-500 bg-gray-800 flex flex-col"
+        class="stylo-menu flex-shrink-0 h-screen border-r border-gray-500 bg-gray-800 flex flex-col"
     >
         <div
             class="stylo-logo flex p-2 w-full border-b border-gray-500 items-center"
@@ -13,7 +13,7 @@
             />
             <p class="font-semibold text-lg">Stylo</p>
         </div>
-        <nav class="stylo-nav h-full p-2">
+        <nav class="stylo-nav h-full p-2 bg-base-200 rounded-box">
             <RouterLink
                 to="/"
                 class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
@@ -25,6 +25,12 @@
                 class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
             >
                 Carto
+            </RouterLink>
+            <RouterLink
+                to="/import"
+                class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
+            >
+                Import
             </RouterLink>
         </nav>
         <div
@@ -50,6 +56,5 @@ const plotterStatusClass = computed<string>(() => {
 <style lang="scss" scoped>
 .stylo-menu {
     width: 180px;
-    flex-shrink: 0;
 }
 </style>

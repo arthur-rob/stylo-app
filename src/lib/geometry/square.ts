@@ -1,20 +1,23 @@
-import Geometry from '@/lib/geometry/Index'
-class Square extends Geometry {
-    constructor(x = 0, y = 0, width = 20) {
+import Geometry from '@/lib/geometry/Geometry'
+import Vector from '@/lib/core/Vector'
+
+export default class Square extends Geometry {
+    start: Vector
+    width: number
+
+    constructor(x = 0, y = 0, width: number = 20) {
         super({ type: 'square' })
-        this.x = x
-        this.y = y
+        this.start = new Vector(x, y)
         this.width = width
         this.path = this.create()
-        this.closeGeometry()
     }
-    create() {
+    create(): Vector[] {
         return [
-            { x: this.x, y: this.y, isGap: true },
-            { x: this.x, y: this.y + this.width, isGap: false },
-            { x: this.x + this.width, y: this.y + this.width, isGap: false },
-            { x: this.x + this.width, y: this.y, isGap: false },
+            this.start,
+            this.start.add(new Vector(this.width, 0)),
+            this.start.add(new Vector(this.width, this.width)),
+            this.start.add(new Vector(0, this.width)),
+            this.start,
         ]
     }
 }
-export default Square

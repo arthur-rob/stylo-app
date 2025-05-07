@@ -1,5 +1,13 @@
 @import "tailwindcss";
+@plugin "daisyui";
 
 body{
     color: white;
+}
+input {
+    font: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    letter-spacing: inherit;
+    color: inherit;
 }

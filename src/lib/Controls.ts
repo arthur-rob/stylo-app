@@ -1,5 +1,5 @@
-import Geometry from '@/lib/geometry/Index'
-import { Coordinate } from '@/models/lib'
+import Geometry from '@/lib/geometry/Geometry'
+import Vector from './core/Vector'
 interface Settings {
     gcode: {
         unit: string
@@ -24,7 +24,6 @@ class Control {
     finalSteps: string[]
     initialSteps: string[]
     gcodeCommands: string[]
-    isPreviousCoordGap: boolean | undefined
     constructor() {
         this.settings = {
             layout: {
@@ -47,7 +46,6 @@ class Control {
         this.initialSteps = this.init()
         this.finalSteps = this.backToZero()
         this.gcodeCommands = []
-        this.isPreviousCoordGap = false
     }
     init() {
         const setup = []
@@ -63,50 +61,53 @@ class Control {
         finalSteps.push(`${this.settings.gcode.baseCommand} X0 Y0`)
         return finalSteps
     }
-    getMinMaxPos(pos: Coordinate) {
+    getMinMaxPos(pos: Vector): Vector {
         const noNegative = {
             x: Math.max(pos.x, 0),
             y: Math.max(pos.y, 0),
         }
-        return {
-            x: Math.min(noNegative.x, this.settings.layout.width),
-            y: Math.min(noNegative.y, this.settings.layout.height),
-        }
+        return new Vector(
+            Math.min(noNegative.x, this.settings.layout.width),
+            Math.min(noNegative.y, this.settings.layout.height)
+        )
     }
-    generate(geometries: Geometry[]) {
+    generate(geometries: Geometry[]): string[] {
         let commands = this.initialSteps
         for (let i = 0; i < geometries.length; i++) {
             const element = geometries[i]
-            const tmpSteps = this.beforeGenerateDraw(element)
-            for (let j = 0; j < element.path.length; j++) {
-                const coords = element.path[j]
-                const maxPos = this.getMinMaxPos(coords)
-                if (this.isPreviousCoordGap != coords.isGap)
-                    tmpSteps.push(
-                        coords.isGap
-                            ? this.settings.gcode.zAxisUp
-                            : this.settings.gcode.zAxisDown
-                    )
-                tmpSteps.push(this.comptudeCoordSteps(maxPos.x, maxPos.y))
-                this.isPreviousCoordGap = coords.isGap
-            }
-            tmpSteps.push(this.settings.gcode.zAxisUp)
-            this.isPreviousCoordGap = true
-            commands = commands.concat(tmpSteps)
+            const elementGCodes = this.getGCodeForElement(element)
+            commands = commands.concat(elementGCodes)
         }
         commands = commands.concat(this.finalSteps)
         return commands
     }
-    comptudeCoordSteps(x: number, y: number) {
+    getGCodeForElement(element: Geometry): string[] {
+        const moveToElementSteps = this.beforeElementDraw(element)
+        const drawElementSteps = []
+        for (let j = 0; j < element.path.length; j++) {
+            const coords = element.path[j]
+            const maxPos = this.getMinMaxPos(coords)
+            drawElementSteps.push(this.comptudeCoordSteps(maxPos.x, maxPos.y))
+        }
+        const afterElementSteps = this.afterElementDraw(element)
+        return [
+            ...moveToElementSteps,
+            ...drawElementSteps,
+            ...afterElementSteps
+        ]
+    }
+    comptudeCoordSteps(x: number, y: number): string {
         return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1 : x} Y${this.settings.gcode.revertAxisY ? y * -1 : y}`
     }
-    beforeGenerateDraw(element: Geometry) {
+    beforeElementDraw(element: Geometry): string[] {
         const before = []
         const coords = this.getMinMaxPos(element.path[0])
         before.push(this.comptudeCoordSteps(coords.x, coords.y))
         before.push(this.settings.gcode.zAxisDown)
-        this.isPreviousCoordGap = false
         return before
+    }
+    afterElementDraw(): string[] {
+        return [this.settings.gcode.zAxisUp]
     }
 }
 
