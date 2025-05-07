@@ -1,13 +1,14 @@
 import Vector from '@/lib/core/Vector'
-interface SvgParsedPath {
+export interface SvgParsedPath {
     code: string
-    x: number
-    y: number
+    x?: number
+    y?: number
+    command?: string
     x1?: number
     y1?: number
     x2?: number
     y2?: number
-    relative: boolean
+    relative?: boolean
 }
 
 export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {

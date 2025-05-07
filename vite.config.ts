@@ -11,4 +11,8 @@ export default defineConfig({
         },
     },
     plugins: [tailwindcss(), vue()],
+    test: {
+        globals: true,
+        environment: 'jsdom',
+    },
 })
