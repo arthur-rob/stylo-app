@@ -15,9 +15,10 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
     const vectorsCollection: Vector[][] = []
     path.forEach((segment, index, array) => {
         const baseCommand = segment.code.toUpperCase()
-        const isRelative = segment.relative
+        const isRelative = !!segment.relative
+        const lastSegment = vectors.slice(-1).pop()
         const vectoToAdd = isRelative
-            ? new Vector(array[index - 1].x, array[index - 1].y)
+            ? lastSegment || new Vector(0, 0)
             : new Vector(0, 0)
         switch (baseCommand) {
             case 'M':
@@ -31,29 +32,35 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
                 vectors.push(new Vector(segment.x, segment.y).add(vectoToAdd))
                 break
             case 'H':
+                if (!isRelative) vectoToAdd.y = lastSegment?.y || 0
                 vectors.push(new Vector(segment.x, 0).add(vectoToAdd))
                 break
             case 'V':
+                if (!isRelative) vectoToAdd.x = lastSegment?.x || 0
                 vectors.push(new Vector(0, segment.y).add(vectoToAdd))
                 break
             case 'C':
                 vectors.push(
-                    new Vector(segment.x1, segment.y1).add(vectoToAdd),
-                    new Vector(segment.x2, segment.y2).add(vectoToAdd),
+                    new Vector(segment.x1 || 0, segment.y1 || 0).add(
+                        vectoToAdd
+                    ),
+                    new Vector(segment.x2 || 0, segment.y2 || 0).add(
+                        vectoToAdd
+                    ),
                     new Vector(segment.x, segment.y).add(vectoToAdd)
                 )
                 break
             case 'S':
                 vectors.push(
-                    new Vector(array[index - 1].x1, array[index - 1].y1).add(
+                    lastSegment,
+                    new Vector(segment.x2 || 0, segment.y2 || 0).add(
                         vectoToAdd
                     ),
-                    new Vector(segment.x2, segment.y2).add(vectoToAdd),
                     new Vector(segment.x, segment.y).add(vectoToAdd)
                 )
                 break
             case 'Z':
-                vectors.push(new Vector(segment.x, segment.y).add(vectoToAdd))
+                vectors.push(new Vector(vectors[0].x, vectors[0].y))
                 break
             default:
                 console.warn(
@@ -61,6 +68,7 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
                 )
                 break
         }
+
         if (index === array.length - 1) vectorsCollection.push(vectors)
     })
     return vectorsCollection
