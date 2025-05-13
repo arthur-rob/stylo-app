@@ -38,7 +38,7 @@
         "daisyui": "^5.0.35",
         "eslint": "^9.26.0",
         "eslint-config-prettier": "^10.1.1",
-        "eslint-plugin-vue": "^10.0.0",
+        "eslint-plugin-vue": "^10.1.0",
         "globals": "^16.0.0",
         "husky": "^9.1.7",
         "jsdom": "^26.1.0",
