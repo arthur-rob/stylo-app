@@ -22,7 +22,7 @@
         "body-parser": "^1.20.3",
         "cors": "^2.8.5",
         "express": "^4.21.1",
-        "pinia": "^2.2.6",
+        "pinia": "^3.0.2",
         "primevue": "^3.49.1",
         "sass": "^1.86.3",
         "serialport": "^13.0.0",
