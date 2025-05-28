@@ -42,13 +42,16 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
                 break
             case 'C':
                 vectors.push(
-                    new Vector(segment.x1 || 0, segment.y1 || 0).add(
-                        vectoToAdd
-                    ),
-                    new Vector(segment.x2 || 0, segment.y2 || 0).add(
-                        vectoToAdd
-                    ),
-                    new Vector(segment.x, segment.y).add(vectoToAdd)
+                    ...computeQuadraticBezierPoints(
+                        new Vector(segment.x1 || 0, segment.y1 || 0).add(
+                            vectoToAdd
+                        ),
+                        new Vector(segment.x2 || 0, segment.y2 || 0).add(
+                            vectoToAdd
+                        ),
+                        new Vector(segment.x, segment.y).add(vectoToAdd),
+                        20
+                    )
                 )
                 break
             case 'S':
@@ -73,4 +76,27 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
         if (index === array.length - 1) vectorsCollection.push(vectors)
     })
     return vectorsCollection
+}
+
+export function computeQuadraticBezierPoints(
+    p0: Vector,
+    p1: Vector,
+    p2: Vector,
+    numPoints: number
+): Vector[] {
+    const points: Vector[] = []
+
+    for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints
+        const oneMinusT = 1 - t
+
+        const term1 = p0.scale(oneMinusT * oneMinusT)
+        const term2 = p1.scale(2 * oneMinusT * t)
+        const term3 = p2.scale(t * t)
+
+        const point = term1.add(term2).add(term3)
+        points.push(point)
+    }
+
+    return points
 }
