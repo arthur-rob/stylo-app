@@ -40,20 +40,27 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
                 if (!isRelative) vectoToAdd.x = lastSegment?.x || 0
                 vectors.push(new Vector(0, segment.y).add(vectoToAdd))
                 break
-            case 'C':
-                vectors.push(
-                    ...computeQuadraticBezierPoints(
-                        new Vector(segment.x1 || 0, segment.y1 || 0).add(
-                            vectoToAdd
-                        ),
-                        new Vector(segment.x2 || 0, segment.y2 || 0).add(
-                            vectoToAdd
-                        ),
-                        new Vector(segment.x, segment.y).add(vectoToAdd),
-                        20
-                    )
+            case 'C': {
+                const controlPoint1 = new Vector(
+                    segment.x1 || 0,
+                    segment.y1 || 0
+                ).add(vectoToAdd)
+                const controlPoint2 = new Vector(
+                    segment.x2 || 0,
+                    segment.y2 || 0
+                ).add(vectoToAdd)
+                const endPoint = new Vector(segment.x, segment.y).add(
+                    vectoToAdd
                 )
+                const bezierCurveVectors = computeQuadraticBezierPoints(
+                    controlPoint1,
+                    controlPoint2,
+                    endPoint,
+                    20
+                )
+                vectors.push(...bezierCurveVectors)
                 break
+            }
             case 'S':
                 vectors.push(
                     lastSegment,
