@@ -1,5 +1,5 @@
 import Vector from '@/lib/core/Vector'
-export interface SvgParsedPath {
+export interface SvgCommand {
     code: string
     x?: number
     y?: number
@@ -11,7 +11,7 @@ export interface SvgParsedPath {
     relative?: boolean
 }
 
-export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
+export const svgToVector = (path: SvgCommand[]): Vector[][] => {
     const vectors: Vector[] = []
     const vectorsCollection: Vector[][] = []
     path.forEach((segment, index, array) => {
