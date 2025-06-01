@@ -25,7 +25,7 @@
 import EditorLayout from '@/layouts/EditorLayout.vue'
 import { onMounted } from 'vue'
 import Path from '@/lib/geometry/Path'
-import { svgToVector, SvgParsedPath } from '@/lib/SvgToVector'
+import { svgToVector, SvgCommand } from '@/lib/SvgToVector'
 import { parseSVG } from 'svg-path-parser'
 import Stylo from '@/lib/Stylo'
 import { useIndexStore } from '@/store/index'
@@ -61,7 +61,7 @@ const parseSVGContent = (svgContent: string) => {
     const parser = new DOMParser()
     const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml')
     const paths = svgDoc.querySelectorAll('path')
-    const parsedPaths: SvgParsedPath[] = []
+    const parsedPaths: SvgCommand[] = []
 
     paths.forEach((path) => {
         const d = path.getAttribute('d')
@@ -70,7 +70,7 @@ const parseSVGContent = (svgContent: string) => {
     })
     drawPaths(parsedPaths)
 }
-const drawPaths = (paths: SvgParsedPath[][]) => {
+const drawPaths = (paths: SvgCommand[][]) => {
     paths.forEach((pathData) => {
         const newPathsCollection = svgToVector(pathData)
         newPathsCollection.forEach((newPath) => {
