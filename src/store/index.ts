@@ -23,10 +23,23 @@ export const useIndexStore = defineStore('index', () => {
         }
     }
 
+    const draw = async () => {
+        try {
+            await Axios.post('/plotter/draw', {
+                plotterId: activePlotter.value?.name,
+                gCode: gCode.value,
+            })
+        } catch (error) {
+            console.error('Draw Failed')
+            throw error
+        }
+    }
+
     return {
         plotters,
         gCode,
         syncPlotter,
         activePlotter,
+        draw,
     }
 })

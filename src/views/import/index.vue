@@ -2,7 +2,7 @@
     <EditorLayout>
         <div class="svg-import-action">
             <h3 class="text-2xl">Import Svg File</h3>
-            <div class="file-input-containe">
+            <div class="file-input-container">
                 <label
                     class="block my-4 text-sm font-medium text-gray-900 dark:text-white"
                     for="file_input"
@@ -17,13 +17,22 @@
                     />
                 </label>
             </div>
+            <div class="controls">
+                <button
+                    class="btn btn-neutral"
+                    :disabled="!isDrawReady"
+                    @click="store.draw()"
+                >
+                    Draw
+                </button>
+            </div>
         </div>
     </EditorLayout>
 </template>
 
 <script setup lang="ts">
 import EditorLayout from '@/layouts/EditorLayout.vue'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import Path from '@/lib/geometry/Path'
 import { svgToVector, SvgCommand } from '@/lib/SvgToVector'
 import { parseSVG } from 'svg-path-parser'
@@ -32,9 +41,9 @@ import { useIndexStore } from '@/store/index'
 
 const store = useIndexStore()
 const stylo = new Stylo()
-
+const isDrawReady = ref<boolean>(false)
 onMounted(async () => {
-    stylo.init('#stylo', { renderSize: 2, scale: 0.2 })
+    stylo.init('#stylo', { renderSize: 1 })
     stylo.render()
 })
 
@@ -77,10 +86,11 @@ const drawPaths = (paths: SvgCommand[][]) => {
             stylo.add(new Path(newPath))
         })
     })
-    const scale = 0.1
+    const scale = 0.6
     stylo.layers[0].scale(scale)
     stylo.render()
     store.gCode = stylo.generateGCode()
+    isDrawReady.value = true
 }
 </script>
 <style scoped lang="scss"></style>

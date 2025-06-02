@@ -1,55 +1,78 @@
 import Vector from '@/lib/core/Vector'
+import ClipperLib from 'clipper-lib'
 
-export const sutherlandHodgmanClip = (
-    path: Vector[],
-    clipPolygon: Vector[]
-): Vector[] => {
-    let outputList = path
+// Detect whether the input polygon is closed
+function isPolygonClosed(polygon: Vector[]): boolean {
+    if (polygon.length < 3) return false
+    const first = polygon[0]
+    const last = polygon[polygon.length - 1]
+    return first.x === last.x && first.y === last.y
+}
 
-    for (let i = 0; i < clipPolygon.length; i++) {
-        const inputList = outputList
-        outputList = []
+// Convert a Vector[] to Clipper format, forcing closed for Clipper
+function toClipperPath(
+    polygon: Vector[],
+    scale: number
+): { X: number; Y: number }[] {
+    const path = polygon.map((p) => ({
+        X: Math.round(p.x * scale),
+        Y: Math.round(p.y * scale),
+    }))
 
-        const A = clipPolygon[i]
-        const B = clipPolygon[(i + 1) % clipPolygon.length]
-
-        for (let j = 0; j < inputList.length - 1; j++) {
-            const P = inputList[j]
-            const Q = inputList[j + 1]
-
-            const insideP = isInside(P, A, B)
-            const insideQ = isInside(Q, A, B)
-
-            if (insideP && insideQ) {
-                outputList.push(Q)
-            } else if (insideP && !insideQ) {
-                outputList.push(intersection(P, Q, A, B))
-            } else if (!insideP && insideQ) {
-                outputList.push(intersection(P, Q, A, B))
-                outputList.push(Q)
-            }
-            // else both outside: no output
+    if (path.length >= 2) {
+        const first = path[0]
+        const last = path[path.length - 1]
+        if (first.X !== last.X || first.Y !== last.Y) {
+            path.push({ X: first.X, Y: first.Y }) // Close it for Clipper
         }
     }
 
-    return outputList
+    return path
 }
 
-// Check if point is on the inside of edge AB (left of AB)
-function isInside(p: Vector, a: Vector, b: Vector): boolean {
-    const ab = b.subtract(a)
-    const ap = p.subtract(a)
-    return ab.x * ap.y - ab.y * ap.x >= 0
+// Convert Clipper path back to Vector[], optionally keeping it closed
+function fromClipperPath(
+    path: { X: number; Y: number }[],
+    scale: number,
+    shouldClose = true
+): Vector[] {
+    const result = path.map((p) => new Vector(p.X / scale, p.Y / scale))
+
+    if (shouldClose && result.length >= 2) {
+        const first = result[0]
+        const last = result[result.length - 1]
+        if (first.x !== last.x || first.y !== last.y) {
+            result.push(new Vector(first.x, first.y))
+        }
+    }
+
+    return result
 }
 
-// Compute intersection point of segments PQ and edge AB
-function intersection(p: Vector, q: Vector, a: Vector, b: Vector): Vector {
-    const r = q.subtract(p)
-    const s = b.subtract(a)
-    const denominator = r.x * s.y - r.y * s.x
+// Main function to clip a path using Clipper
+export function clipPathWithClipper(
+    path: Vector[],
+    clipPolygon: Vector[]
+): Vector[] {
+    const scale = 1000
+    const isClosed = isPolygonClosed(path)
 
-    if (denominator === 0) return p // Parallel lines or overlapping
+    const subject = toClipperPath(path, scale)
+    const clip = toClipperPath(clipPolygon, scale)
 
-    const t = ((a.x - p.x) * s.y - (a.y - p.y) * s.x) / denominator
-    return new Vector(p.x + t * r.x, p.y + t * r.y)
+    const clipper = new ClipperLib.Clipper()
+    clipper.AddPath(subject, ClipperLib.PolyType.ptSubject, true)
+    clipper.AddPath(clip, ClipperLib.PolyType.ptClip, true)
+
+    const solution: ClipperLib.Paths = new ClipperLib.Paths()
+    clipper.Execute(
+        ClipperLib.ClipType.ctIntersection,
+        solution,
+        ClipperLib.PolyFillType.pftNonZero,
+        ClipperLib.PolyFillType.pftNonZero
+    )
+
+    return solution.length > 0
+        ? fromClipperPath(solution[0], scale, isClosed)
+        : []
 }
