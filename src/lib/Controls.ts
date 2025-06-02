@@ -1,6 +1,6 @@
 import Geometry from '@/lib/geometry/Geometry'
 import Vector from '@/lib/core/Vector'
-import { sutherlandHodgmanClip } from '@/lib/helpers'
+import { clipPathWithClipper } from '@/lib/helpers'
 interface Settings {
     gcode: {
         unit: string
@@ -75,17 +75,15 @@ class Control {
     getClipPolygon(): Vector[] {
         return [
             new Vector(0, 0),
-            new Vector(this.settings.layout.width, 0),
-            new Vector(this.settings.layout.width, this.settings.layout.height),
             new Vector(0, this.settings.layout.height),
+            new Vector(this.settings.layout.width, this.settings.layout.height),
+            new Vector(this.settings.layout.width, 0),
         ]
     }
     getGCodeForElement(element: Geometry): string[] {
         const drawElementSteps = []
-        const clippedVectors = sutherlandHodgmanClip(
-            element.path,
-            this.getClipPolygon()
-        )
+        const clipPolygon = this.getClipPolygon()
+        const clippedVectors = clipPathWithClipper(element.path, clipPolygon)
         if (clippedVectors.length < 1) return []
 
         const moveToElementSteps = this.beforeElementDraw(clippedVectors)
