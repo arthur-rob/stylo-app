@@ -1,18 +1,30 @@
 <template>
-    <div
-        class="flex divide-y divide-gray-100 shadow-md p-2 fixed bottom-0 w-full items-center bg-white space-x-2 justify-end"
-    >
-        <button type="button" @click="stylo.getGcode()">Generate</button>
+    <div class="flex divide-y divide-gray-100 gap-2">
         <button
-            class="inline-flex h-12 items-center justify-center rounded-md bg-neutral-950 px-6 font-medium text-neutral-50 shadow-lg shadow-neutral-500/20 transition active:scale-95"
-            @click="stylo.sendToPlotter()"
+            class="btn btn-neutral"
+            :disabled="store.isDrawing"
+            @click="store.draw()"
         >
             Draw
+        </button>
+        <button class="btn btn-neutral" @click="store.resetPen()">
+            Reset Pen
+        </button>
+        <button class="btn btn-neutral" @click="store.moveTo(10, 0)">
+            X: +10
+        </button>
+        <button class="btn btn-neutral" @click="store.moveTo(-10, 0)">
+            X: -10
+        </button>
+        <button class="btn btn-neutral" @click="store.moveTo(0, 10)">
+            Y: +10
+        </button>
+        <button class="btn btn-neutral" @click="store.moveTo(0, -10)">
+            Y: -10
         </button>
     </div>
 </template>
 <script setup lang="ts">
 import { useIndexStore } from '@/store/index'
-const indexStore = useIndexStore()
-const stylo = indexStore.stylo
+const store = useIndexStore()
 </script>

@@ -20,7 +20,7 @@
             <div class="controls">
                 <button
                     class="btn btn-neutral"
-                    :disabled="!isDrawReady"
+                    :disabled="store.isDrawing"
                     @click="store.draw()"
                 >
                     Draw
@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import EditorLayout from '@/layouts/EditorLayout.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import Path from '@/lib/geometry/Path'
 import { svgToVector, SvgCommand } from '@/lib/SvgToVector'
 import { parseSVG } from 'svg-path-parser'
@@ -41,9 +41,9 @@ import { useIndexStore } from '@/store/index'
 
 const store = useIndexStore()
 const stylo = new Stylo()
-const isDrawReady = ref<boolean>(false)
+
 onMounted(async () => {
-    stylo.init('#stylo', { renderSize: 1 })
+    stylo.init('#stylo', { renderSize: 2 })
     stylo.render()
 })
 
@@ -86,11 +86,10 @@ const drawPaths = (paths: SvgCommand[][]) => {
             stylo.add(new Path(newPath))
         })
     })
-    const scale = 0.6
+    const scale = 0.5
     stylo.layers[0].scale(scale)
     stylo.render()
     store.gCode = stylo.generateGCode()
-    isDrawReady.value = true
 }
 </script>
 <style scoped lang="scss"></style>

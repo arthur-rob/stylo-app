@@ -28,13 +28,13 @@ class Control {
     constructor() {
         this.settings = {
             layout: {
-                width: 148,
-                height: 210,
+                width: 200,
+                height: 287,
             },
             gcode: {
                 unit: 'G21', // units in mm by default
-                zAxisDown: 'S100 M3',
-                zAxisUp: 'S0 M5',
+                zAxisDown: 'M3 S100',
+                zAxisUp: 'M3 S0',
                 xAxis: 'X',
                 yAxis: 'Y',
                 revertAxisX: true,
@@ -55,6 +55,18 @@ class Control {
         setup.push(this.settings.gcode.mode)
         setup.push(this.settings.gcode.zAxisUp)
         return setup
+    }
+    generateManualCommand(x: number, y: number) {
+        const commands = this.init()
+        commands.push(this.comptudeCoordSteps(x, y))
+        return commands
+    }
+    generateUnstuckPenCommand() {
+        const commands = this.init()
+        commands.push(this.settings.gcode.zAxisDown)
+        commands.push('G01 X0.05 Y0.05 F10')
+        commands.push(this.settings.gcode.zAxisUp)
+        return commands
     }
     backToZero() {
         const finalSteps = []
