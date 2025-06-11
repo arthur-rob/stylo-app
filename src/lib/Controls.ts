@@ -1,5 +1,6 @@
 import Geometry from '@/lib/geometry/Geometry'
-import Vector from './core/Vector'
+import Vector from '@/lib/core/Vector'
+import { clipPathWithClipper } from '@/lib/helpers'
 interface Settings {
     gcode: {
         unit: string
@@ -27,13 +28,13 @@ class Control {
     constructor() {
         this.settings = {
             layout: {
-                width: 148,
-                height: 210,
+                width: 200,
+                height: 287,
             },
             gcode: {
                 unit: 'G21', // units in mm by default
-                zAxisDown: 'S100 M3',
-                zAxisUp: 'S0 M5',
+                zAxisDown: 'M3 S100',
+                zAxisUp: 'M3 S0',
                 xAxis: 'X',
                 yAxis: 'Y',
                 revertAxisX: true,
@@ -55,21 +56,23 @@ class Control {
         setup.push(this.settings.gcode.zAxisUp)
         return setup
     }
+    generateManualCommand(x: number, y: number) {
+        const commands = this.init()
+        commands.push(this.comptudeCoordSteps(x, y))
+        return commands
+    }
+    generateUnstuckPenCommand() {
+        const commands = this.init()
+        commands.push(this.settings.gcode.zAxisDown)
+        commands.push('G01 X0.05 Y0.05 F10')
+        commands.push(this.settings.gcode.zAxisUp)
+        return commands
+    }
     backToZero() {
         const finalSteps = []
         finalSteps.push(this.settings.gcode.zAxisUp)
         finalSteps.push(`${this.settings.gcode.baseCommand} X0 Y0`)
         return finalSteps
-    }
-    getMinMaxPos(pos: Vector): Vector {
-        const noNegative = {
-            x: Math.max(pos.x, 0),
-            y: Math.max(pos.y, 0),
-        }
-        return new Vector(
-            Math.min(noNegative.x, this.settings.layout.width),
-            Math.min(noNegative.y, this.settings.layout.height)
-        )
     }
     generate(geometries: Geometry[]): string[] {
         let commands = this.initialSteps
@@ -81,28 +84,38 @@ class Control {
         commands = commands.concat(this.finalSteps)
         return commands
     }
+    getClipPolygon(): Vector[] {
+        return [
+            new Vector(0, 0),
+            new Vector(0, this.settings.layout.height),
+            new Vector(this.settings.layout.width, this.settings.layout.height),
+            new Vector(this.settings.layout.width, 0),
+        ]
+    }
     getGCodeForElement(element: Geometry): string[] {
-        const moveToElementSteps = this.beforeElementDraw(element)
         const drawElementSteps = []
-        for (let j = 0; j < element.path.length; j++) {
-            const coords = element.path[j]
-            const maxPos = this.getMinMaxPos(coords)
-            drawElementSteps.push(this.comptudeCoordSteps(maxPos.x, maxPos.y))
+        const clipPolygon = this.getClipPolygon()
+        const clippedVectors = clipPathWithClipper(element.path, clipPolygon)
+        if (clippedVectors.length < 1) return []
+
+        const moveToElementSteps = this.beforeElementDraw(clippedVectors)
+        for (let j = 0; j < clippedVectors.length; j++) {
+            const vector = clippedVectors[j]
+            drawElementSteps.push(this.comptudeCoordSteps(vector.x, vector.y))
         }
-        const afterElementSteps = this.afterElementDraw(element)
+        const afterElementSteps = this.afterElementDraw()
         return [
             ...moveToElementSteps,
             ...drawElementSteps,
-            ...afterElementSteps
+            ...afterElementSteps,
         ]
     }
     comptudeCoordSteps(x: number, y: number): string {
         return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1 : x} Y${this.settings.gcode.revertAxisY ? y * -1 : y}`
     }
-    beforeElementDraw(element: Geometry): string[] {
+    beforeElementDraw(vectors: Vector[]): string[] {
         const before = []
-        const coords = this.getMinMaxPos(element.path[0])
-        before.push(this.comptudeCoordSteps(coords.x, coords.y))
+        before.push(this.comptudeCoordSteps(vectors[0].x, vectors[0].y))
         before.push(this.settings.gcode.zAxisDown)
         return before
     }

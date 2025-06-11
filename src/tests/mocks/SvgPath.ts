@@ -1,5 +1,24 @@
-import { SvgParsedPath } from '@/lib/SvgToVector'
-export const SVG_PARSED_BASIC_PATH: SvgParsedPath[] = [
+import { SvgCommand } from '@/lib/SvgToVector'
+
+export const SVG_M_COMMAND: SvgCommand = {
+    code: 'M',
+    command: 'moveto',
+    x: 881.4,
+    y: 338.2,
+}
+
+export const SVG_C_COMMAND: SvgCommand = {
+    code: 'c',
+    command: 'curveto',
+    relative: true,
+    x1: -27.2,
+    y1: 0,
+    x2: -51,
+    y2: -4.8,
+    x: -71.5,
+    y: -14.4,
+}
+export const SVG_PARSED_BASIC_PATH: SvgCommand[] = [
     {
         code: 'M',
         command: 'moveto',
@@ -44,23 +63,8 @@ export const SVG_PARSED_BASIC_PATH: SvgParsedPath[] = [
     },
 ]
 export const SVG_PARSED_PATH = [
-    {
-        code: 'M',
-        command: 'moveto',
-        x: 881.4,
-        y: 338.2,
-    },
-    {
-        code: 'c',
-        command: 'curveto',
-        relative: true,
-        x1: -27.2,
-        y1: 0,
-        x2: -51,
-        y2: -4.8,
-        x: -71.5,
-        y: -14.4,
-    },
+    SVG_M_COMMAND,
+    SVG_C_COMMAND,
     {
         code: 's',
         command: 'smooth curveto',

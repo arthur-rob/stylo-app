@@ -1,5 +1,5 @@
 import Vector from '@/lib/core/Vector'
-export interface SvgParsedPath {
+export interface SvgCommand {
     code: string
     x?: number
     y?: number
@@ -11,7 +11,7 @@ export interface SvgParsedPath {
     relative?: boolean
 }
 
-export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
+export const svgToVector = (path: SvgCommand[]): Vector[][] => {
     const vectors: Vector[] = []
     const vectorsCollection: Vector[][] = []
     path.forEach((segment, index, array) => {
@@ -40,17 +40,27 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
                 if (!isRelative) vectoToAdd.x = lastSegment?.x || 0
                 vectors.push(new Vector(0, segment.y).add(vectoToAdd))
                 break
-            case 'C':
-                vectors.push(
-                    new Vector(segment.x1 || 0, segment.y1 || 0).add(
-                        vectoToAdd
-                    ),
-                    new Vector(segment.x2 || 0, segment.y2 || 0).add(
-                        vectoToAdd
-                    ),
-                    new Vector(segment.x, segment.y).add(vectoToAdd)
+            case 'C': {
+                const controlPoint1 = new Vector(
+                    segment.x1 || 0,
+                    segment.y1 || 0
+                ).add(vectoToAdd)
+                const controlPoint2 = new Vector(
+                    segment.x2 || 0,
+                    segment.y2 || 0
+                ).add(vectoToAdd)
+                const endPoint = new Vector(segment.x, segment.y).add(
+                    vectoToAdd
                 )
+                const bezierCurveVectors = computeQuadraticBezierPoints(
+                    controlPoint1,
+                    controlPoint2,
+                    endPoint,
+                    20
+                )
+                vectors.push(...bezierCurveVectors)
                 break
+            }
             case 'S':
                 vectors.push(
                     lastSegment,
@@ -73,4 +83,27 @@ export const svgToVector = (path: SvgParsedPath[]): Vector[][] => {
         if (index === array.length - 1) vectorsCollection.push(vectors)
     })
     return vectorsCollection
+}
+
+export function computeQuadraticBezierPoints(
+    p0: Vector,
+    p1: Vector,
+    p2: Vector,
+    numPoints: number
+): Vector[] {
+    const points: Vector[] = []
+
+    for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints
+        const oneMinusT = 1 - t
+
+        const term1 = p0.scale(oneMinusT * oneMinusT)
+        const term2 = p1.scale(2 * oneMinusT * t)
+        const term3 = p2.scale(t * t)
+
+        const point = term1.add(term2).add(term3)
+        points.push(point)
+    }
+
+    return points
 }

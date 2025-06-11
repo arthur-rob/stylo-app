@@ -28,14 +28,16 @@
             </div>
             <div class="spacer w-px border-r border-gray-400 h-full"></div>
             <div
-                class="controls-wrapper flex-initial justify-self-end h-screen w-full p-2 bg-gray-800"
+                class="controls-wrapper flex flex-col h-screen w-full justify-between p-2 bg-gray-800 h-full"
             >
                 <slot></slot>
+                <plotterActions />
             </div>
         </div>
     </div>
 </template>
 <script setup lang="ts">
+import plotterActions from '@/components/plotterActions.vue'
 import { useIndexStore } from '@/store/index'
 const store = useIndexStore()
 </script>

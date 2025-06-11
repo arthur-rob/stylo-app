@@ -2,7 +2,7 @@
     <EditorLayout>
         <div class="svg-import-action">
             <h3 class="text-2xl">Import Svg File</h3>
-            <div class="file-input-containe">
+            <div class="file-input-container">
                 <label
                     class="block my-4 text-sm font-medium text-gray-900 dark:text-white"
                     for="file_input"
@@ -17,6 +17,15 @@
                     />
                 </label>
             </div>
+            <div class="controls">
+                <button
+                    class="btn btn-neutral"
+                    :disabled="store.isDrawing"
+                    @click="store.draw()"
+                >
+                    Draw
+                </button>
+            </div>
         </div>
     </EditorLayout>
 </template>
@@ -25,7 +34,7 @@
 import EditorLayout from '@/layouts/EditorLayout.vue'
 import { onMounted } from 'vue'
 import Path from '@/lib/geometry/Path'
-import { svgToVector, SvgParsedPath } from '@/lib/SvgToVector'
+import { svgToVector, SvgCommand } from '@/lib/SvgToVector'
 import { parseSVG } from 'svg-path-parser'
 import Stylo from '@/lib/Stylo'
 import { useIndexStore } from '@/store/index'
@@ -34,7 +43,7 @@ const store = useIndexStore()
 const stylo = new Stylo()
 
 onMounted(async () => {
-    stylo.init('#stylo', { renderSize: 2, scale: 0.2 })
+    stylo.init('#stylo', { renderSize: 2 })
     stylo.render()
 })
 
@@ -61,7 +70,7 @@ const parseSVGContent = (svgContent: string) => {
     const parser = new DOMParser()
     const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml')
     const paths = svgDoc.querySelectorAll('path')
-    const parsedPaths: SvgParsedPath[] = []
+    const parsedPaths: SvgCommand[] = []
 
     paths.forEach((path) => {
         const d = path.getAttribute('d')
@@ -70,14 +79,14 @@ const parseSVGContent = (svgContent: string) => {
     })
     drawPaths(parsedPaths)
 }
-const drawPaths = (paths: SvgParsedPath[][]) => {
+const drawPaths = (paths: SvgCommand[][]) => {
     paths.forEach((pathData) => {
         const newPathsCollection = svgToVector(pathData)
         newPathsCollection.forEach((newPath) => {
             stylo.add(new Path(newPath))
         })
     })
-    const scale = 0.1
+    const scale = 0.5
     stylo.layers[0].scale(scale)
     stylo.render()
     store.gCode = stylo.generateGCode()

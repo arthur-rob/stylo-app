@@ -1,5 +1,4 @@
 export interface Plotter {
-    id: string
     name: string
     path: string
     baudRate: number
