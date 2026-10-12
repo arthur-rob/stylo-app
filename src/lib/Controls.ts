@@ -103,8 +103,9 @@ class Control {
         const clippedPaths = clipPolyline(path, this.getDrawableArea())
 
         for (const clippedPath of clippedPaths) {
+            // the pen is already on the first point after beforeElementDraw
             drawSteps.push(...this.beforeElementDraw(clippedPath))
-            for (const v of clippedPath) {
+            for (const v of clippedPath.slice(1)) {
                 drawSteps.push(this.comptudeCoordSteps(v.x, v.y))
             }
             drawSteps.push(...this.afterElementDraw())

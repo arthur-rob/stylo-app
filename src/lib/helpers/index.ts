@@ -2,6 +2,8 @@ import Vector from '@/lib/core/Vector'
 import { Rect } from '@/models/lib'
 
 const PRECISION = 1000
+// shorter cropped strokes are only a border touch: drawing them would leave a dot
+const MIN_CLIPPED_LENGTH = 1e-6
 const round = (value: number) => Math.round(value * PRECISION) / PRECISION
 
 interface ClippedSegment {
@@ -17,6 +19,7 @@ export function clipSegment(
     b: Vector,
     rect: Rect
 ): ClippedSegment | null {
+    if (![a.x, a.y, b.x, b.y].every(Number.isFinite)) return null
     const dx = b.x - a.x
     const dy = b.y - a.y
     const p = [-dx, dx, -dy, dy]
@@ -46,6 +49,11 @@ export function clipSegment(
 
     const startClipped = t0 > 0
     const endClipped = t1 < 1
+    if (
+        (startClipped || endClipped) &&
+        (t1 - t0) * Math.hypot(dx, dy) < MIN_CLIPPED_LENGTH
+    )
+        return null
     return {
         start: startClipped
             ? new Vector(round(a.x + t0 * dx), round(a.y + t0 * dy))
@@ -57,6 +65,9 @@ export function clipSegment(
         endClipped,
     }
 }
+
+const isFinitePoint = (point: Vector) =>
+    Number.isFinite(point.x) && Number.isFinite(point.y)
 
 export function isPointInRect(point: Vector, rect: Rect): boolean {
     return (
@@ -78,7 +89,10 @@ function isPathClosed(path: Vector[]): boolean {
 // each time the path leaves the area, a new polyline (a new pen stroke) starts.
 export function clipPolyline(path: Vector[], rect: Rect): Vector[][] {
     if (path.length === 0) return []
-    if (path.length === 1) return isPointInRect(path[0], rect) ? [path] : []
+    if (path.length === 1)
+        return isPointInRect(path[0], rect) && isFinitePoint(path[0])
+            ? [path]
+            : []
 
     const result: Vector[][] = []
     let current: Vector[] | null = null
