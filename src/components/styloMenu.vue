@@ -1,60 +1,78 @@
 <template>
-    <div
-        class="stylo-menu flex-shrink-0 h-screen border-r border-gray-500 bg-gray-800 flex flex-col"
+    <aside
+        class="stylo-menu flex flex-col shrink-0 h-screen border-r border-base-300 bg-base-200"
     >
-        <div
-            class="stylo-logo flex p-2 w-full border-b border-gray-500 items-center"
-        >
-            <img
-                src="/pentagon.svg"
-                width="24px"
-                alt="pentagone white border"
-                class="mx-4 my-2"
-            />
-            <p class="font-semibold text-lg">Stylo</p>
+        <div class="flex items-center gap-3 px-4 h-14 border-b border-base-300">
+            <img src="/pentagon.svg" width="22" alt="" />
+            <p class="font-semibold tracking-tight">Stylo</p>
         </div>
-        <nav class="stylo-nav h-full p-2 bg-base-200 rounded-box">
+        <nav class="flex-1 p-2 space-y-1" aria-label="Main">
             <RouterLink
-                to="/"
-                class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
+                v-for="link in links"
+                :key="link.to"
+                :to="link.to"
+                class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors"
             >
-                Home
-            </RouterLink>
-            <RouterLink
-                to="/carto"
-                class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
-            >
-                Carto
-            </RouterLink>
-            <RouterLink
-                to="/import"
-                class="block px-3 py-2 my-1 rounded-md hover:bg-gray-700"
-            >
-                Import
+                <Icon :name="link.icon" />
+                {{ link.label }}
             </RouterLink>
         </nav>
-        <div
-            class="stylo-plotter py-4 px-2 flex items-center justify-center border-t border-gray-500"
-        >
-            <p>Plotter Status:</p>
-            <div
-                class="m-2 w-3 h-3 rounded-2xl"
-                :class="[plotterStatusClass]"
-            ></div>
+        <div class="p-3 border-t border-base-300">
+            <div class="flex items-center gap-2 text-sm">
+                <span
+                    class="status status-sm"
+                    :class="status.class"
+                    aria-hidden="true"
+                ></span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs text-base-content/50">Plotter</p>
+                    <p class="truncate" :title="status.label">
+                        {{ status.label }}
+                    </p>
+                </div>
+                <button
+                    v-if="store.connection === 'offline'"
+                    class="btn btn-ghost btn-xs btn-square"
+                    title="Retry connection"
+                    aria-label="Retry plotter connection"
+                    @click="store.syncPlotter().catch(() => {})"
+                >
+                    <Icon name="refresh" :size="14" />
+                </button>
+            </div>
         </div>
-    </div>
+    </aside>
 </template>
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useIndexStore } from '@/store/index'
-const indexStore = useIndexStore()
+import Icon from '@/components/Icon.vue'
 
-const plotterStatusClass = computed<string>(() => {
-    return indexStore.plotters.length > 0 ? 'bg-green-400' : 'bg-red-700'
+const store = useIndexStore()
+
+const links = [
+    { to: '/import', label: 'Import', icon: 'upload' },
+    { to: '/carto', label: 'Carto', icon: 'map' },
+    { to: '/playground', label: 'Playground', icon: 'shapes' },
+] as const
+
+const status = computed(() => {
+    if (store.connection === 'connecting')
+        return { class: 'status-warning', label: 'Connecting…' }
+    if (store.connection === 'offline')
+        return { class: 'status-error', label: 'Server offline' }
+    if (!store.activePlotter)
+        return { class: 'status-error', label: 'No plotter found' }
+    return { class: 'status-success', label: store.activePlotter.name }
 })
 </script>
 <style lang="scss" scoped>
 .stylo-menu {
-    width: 180px;
+    width: 184px;
+}
+.nav-link.is-active {
+    background-color: var(--color-base-300);
+    color: var(--color-base-content);
+    font-weight: 500;
 }
 </style>

@@ -9,7 +9,7 @@ import Stylo from '@/lib/Stylo'
 const stylo = new Stylo()
 
 onMounted(async () => {
-    stylo.init('#stylo', { renderSize: 2 })
+    stylo.init('#stylo', { renderSize: 4 })
     stylo.render()
 })
 </script>

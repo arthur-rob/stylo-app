@@ -28,7 +28,7 @@ stylo.add(p1)
 stylo.add(s1)
 
 onMounted(async () => {
-    stylo.init('#stylo', { renderSize: 2 })
+    stylo.init('#stylo', { renderSize: 4 })
     stylo.render()
 })
 </script>

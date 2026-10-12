@@ -13,12 +13,16 @@ export const useIndexStore = defineStore('index', () => {
     const activePlotter = ref<Plotter | null>(null)
     const gCode = ref<string[]>([])
     const isDrawing = ref<boolean>(false)
+    const connection = ref<'connecting' | 'online' | 'offline'>('connecting')
     const syncPlotter = async () => {
+        connection.value = 'connecting'
         try {
             const response = await Axios.get('/plotter/list')
             plotters.value = response.data
             activePlotter.value = plotters.value[0] || null
+            connection.value = 'online'
         } catch (error) {
+            connection.value = 'offline'
             console.error('Plotter list Unavailable')
             throw error
         }
@@ -55,7 +59,9 @@ export const useIndexStore = defineStore('index', () => {
     return {
         plotters,
         gCode,
+        connection,
         syncPlotter,
+        execute,
         activePlotter,
         draw,
         resetPen,

@@ -4,13 +4,14 @@ import Carto from '@/views/carto/index.vue'
 import ImportSvg from '@/views/import/index.vue'
 
 export const routes = [
-    { path: '/', component: Index, name: 'home' },
-    { path: '/carto', component: Carto, name: 'carto' },
+    { path: '/', redirect: '/import' },
     { path: '/import', component: ImportSvg, name: 'import' },
+    { path: '/carto', component: Carto, name: 'carto' },
+    { path: '/playground', component: Index, name: 'playground' },
 ]
 
 export default createRouter({
     history: createWebHashHistory(),
-    linkActiveClass: 'bg-gray-600 text-white',
+    linkActiveClass: 'is-active',
     routes,
 })
