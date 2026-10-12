@@ -74,6 +74,12 @@
                 class="mt-2 text-xs text-center text-base-content/50"
             >
                 {{ plotHint }}
+                <RouterLink
+                    v-if="!hasPlotter && !store.isDrawing"
+                    to="/plotters"
+                    class="link link-primary"
+                    >Manage plotters</RouterLink
+                >
             </p>
         </div>
     </div>
@@ -105,7 +111,7 @@ const canControl = computed(() => hasPlotter.value && !store.isDrawing)
 const canPlot = computed(() => canControl.value && store.gCode.length > 0)
 const plotHint = computed(() => {
     if (store.isDrawing) return 'Sending instructions to the plotter'
-    if (!hasPlotter.value) return 'Connect a plotter to start plotting'
+    if (!hasPlotter.value) return 'No plotter selected.'
     if (store.gCode.length === 0) return 'Nothing to plot yet'
     return ''
 })
