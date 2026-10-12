@@ -1,9 +1,12 @@
-@import "tailwindcss";
-@plugin "daisyui";
-
-body{
-    color: white;
+@import 'tailwindcss';
+@plugin "daisyui" {
+    themes: dark --default;
 }
+
+@theme {
+    --font-sans: 'InterVariable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
 input {
     font: inherit;
     font-feature-settings: inherit;

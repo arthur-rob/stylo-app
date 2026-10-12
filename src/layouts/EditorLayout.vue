@@ -1,43 +1,121 @@
 <template>
-    <div class="w-full flex">
-        <div
-            class="flex justify-between items-center h-full w-full max-h-screen"
-        >
-            <div
-                class="canvas-aligner flex flex-col items-center justify-center h-full flex-shrink-0"
-            >
+    <div
+        class="relative flex flex-1 min-w-0 h-screen"
+        @dragenter="onDragEnter"
+        @dragover="onDragOver"
+        @dragleave="onDragLeave"
+        @drop="onDrop"
+    >
+        <main class="workspace relative flex flex-1 min-w-0 flex-col">
+            <div class="flex flex-1 min-h-0 items-center justify-center p-8">
                 <canvas
                     id="stylo"
-                    class="p-2 m-6 rounded bg-white self-center outline outline-white outline-4 flex-shrink-0"
+                    class="max-w-full max-h-full bg-white rounded-sm shadow-2xl"
                 ></canvas>
-                <div
-                    class="gcode-preview h-full w-full p-2 bg-gray-800 border-t border-gray-400 overflow-y-scroll"
-                >
-                    <span v-if="!store.gCode || store.gCode.length == 0"
-                        >generate gcode to preview</span
-                    >
-                    <ul>
-                        <li
-                            v-for="(command, index) in store.gCode"
-                            :key="index"
-                        >
-                            {{ command }}
-                        </li>
-                    </ul>
-                </div>
             </div>
-            <div class="spacer w-px border-r border-gray-400 h-full"></div>
             <div
-                class="controls-wrapper flex flex-col h-screen w-full justify-between p-2 bg-gray-800 h-full"
+                class="flex items-center gap-4 px-4 h-9 overflow-hidden whitespace-nowrap text-xs text-base-content/50 border-t border-base-300 bg-base-100/80"
             >
+                <span>A4 · 210 × 297 mm</span>
+                <span class="flex items-center gap-1.5">
+                    <span class="legend-area"></span>
+                    Drawable {{ area.width }} × {{ area.height }} mm
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="legend-cropped"></span>
+                    Cropped (not plotted)
+                </span>
+            </div>
+            <slot name="overlay"></slot>
+        </main>
+        <aside
+            class="flex flex-col w-80 shrink-0 border-l border-base-300 bg-base-200"
+        >
+            <div class="flex-1 min-h-0 overflow-y-auto">
                 <slot></slot>
-                <plotterActions />
+                <GcodePanel />
+            </div>
+            <plotterActions :plot-label="plotLabel" />
+        </aside>
+        <div
+            v-if="isDraggingFiles"
+            class="pointer-events-none absolute inset-3 z-40 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary bg-base-100/85"
+        >
+            <div class="flex flex-col items-center gap-3 text-primary">
+                <Icon name="upload" :size="36" />
+                <p class="text-lg font-medium">{{ dropLabel }}</p>
             </div>
         </div>
     </div>
 </template>
 <script setup lang="ts">
+import { ref } from 'vue'
 import plotterActions from '@/components/plotterActions.vue'
-import { useIndexStore } from '@/store/index'
-const store = useIndexStore()
+import GcodePanel from '@/components/GcodePanel.vue'
+import Icon from '@/components/Icon.vue'
+import Controls from '@/lib/Controls'
+
+const props = withDefaults(
+    defineProps<{
+        droppable?: boolean
+        dropLabel?: string
+        plotLabel?: string
+    }>(),
+    { droppable: false, dropLabel: 'Drop files', plotLabel: 'Plot' }
+)
+const emit = defineEmits<{ 'files-dropped': [files: File[]] }>()
+
+const area = Controls.getDrawableArea()
+
+// dragenter/dragleave fire for every child element: count them to avoid flicker
+const isDraggingFiles = ref(false)
+let dragDepth = 0
+const hasFiles = (event: DragEvent) =>
+    !!event.dataTransfer?.types.includes('Files')
+
+const onDragEnter = (event: DragEvent) => {
+    if (!props.droppable || !hasFiles(event)) return
+    dragDepth++
+    isDraggingFiles.value = true
+}
+const onDragOver = (event: DragEvent) => {
+    if (!props.droppable || !hasFiles(event)) return
+    event.preventDefault()
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
+}
+const onDragLeave = () => {
+    if (!props.droppable) return
+    dragDepth = Math.max(0, dragDepth - 1)
+    if (dragDepth === 0) isDraggingFiles.value = false
+}
+const onDrop = (event: DragEvent) => {
+    if (!props.droppable) return
+    event.preventDefault()
+    dragDepth = 0
+    isDraggingFiles.value = false
+    const files = Array.from(event.dataTransfer?.files || [])
+    if (files.length) emit('files-dropped', files)
+}
 </script>
+<style scoped>
+.workspace {
+    background-color: var(--color-base-100);
+    background-image: radial-gradient(
+        var(--color-base-300) 1px,
+        transparent 1px
+    );
+    background-size: 16px 16px;
+}
+.legend-area {
+    width: 14px;
+    height: 0;
+    border-top: 1px dashed #94a3b8;
+}
+.legend-cropped {
+    width: 14px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    opacity: 0.35;
+}
+</style>

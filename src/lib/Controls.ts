@@ -1,6 +1,7 @@
 import Geometry from '@/lib/geometry/Geometry'
 import Vector from '@/lib/core/Vector'
-import { clipPathWithClipper } from '@/lib/helpers'
+import { clipPolyline } from '@/lib/helpers'
+import { Rect } from '@/models/lib'
 interface Settings {
     gcode: {
         unit: string
@@ -19,6 +20,8 @@ interface Settings {
         height: number
     }
 }
+
+const round = (value: number) => Math.round(value * 1000) / 1000 || 0
 
 class Control {
     settings: Settings
@@ -75,43 +78,47 @@ class Control {
         return finalSteps
     }
     generate(geometries: Geometry[]): string[] {
-        let commands = this.initialSteps
-        for (let i = 0; i < geometries.length; i++) {
-            const element = geometries[i]
-            const elementGCodes = this.getGCodeForElement(element)
-            commands = commands.concat(elementGCodes)
-        }
-        commands = commands.concat(this.finalSteps)
-        return commands
+        return this.generateFromPaths(geometries.map((element) => element.path))
     }
-    getClipPolygon(): Vector[] {
-        return [
-            new Vector(0, 0),
-            new Vector(0, this.settings.layout.height),
-            new Vector(this.settings.layout.width, this.settings.layout.height),
-            new Vector(this.settings.layout.width, 0),
-        ]
+    generateFromPaths(paths: Vector[][]): string[] {
+        const commands = [...this.initialSteps]
+        for (const path of paths) {
+            for (const step of this.getGCodeForPath(path)) commands.push(step)
+        }
+        return commands.concat(this.finalSteps)
+    }
+    getDrawableArea(): Rect {
+        return {
+            x: 0,
+            y: 0,
+            width: this.settings.layout.width,
+            height: this.settings.layout.height,
+        }
     }
     getGCodeForElement(element: Geometry): string[] {
-        const drawElementSteps = []
-        const clipPolygon = this.getClipPolygon()
-        const clippedVectors = clipPathWithClipper(element.path, clipPolygon)
-        if (clippedVectors.length < 1) return []
-
-        const moveToElementSteps = this.beforeElementDraw(clippedVectors)
-        for (let j = 0; j < clippedVectors.length; j++) {
-            const vector = clippedVectors[j]
-            drawElementSteps.push(this.comptudeCoordSteps(vector.x, vector.y))
-        }
-        const afterElementSteps = this.afterElementDraw()
-        return [
-            ...moveToElementSteps,
-            ...drawElementSteps,
-            ...afterElementSteps,
-        ]
+        return this.getGCodeForPath(element.path)
     }
+    getGCodeForPath(path: Vector[]): string[] {
+        const drawSteps: string[] = []
+        const clippedPaths = clipPolyline(path, this.getDrawableArea())
+
+        for (const clippedPath of clippedPaths) {
+            // the pen is already on the first point after beforeElementDraw
+            drawSteps.push(...this.beforeElementDraw(clippedPath))
+            for (const v of clippedPath.slice(1)) {
+                drawSteps.push(this.comptudeCoordSteps(v.x, v.y))
+            }
+            drawSteps.push(...this.afterElementDraw())
+        }
+
+        return drawSteps
+    }
+
     comptudeCoordSteps(x: number, y: number): string {
-        return `${this.settings.gcode.baseCommand} X${this.settings.gcode.revertAxisX ? x * -1 : x} Y${this.settings.gcode.revertAxisY ? y * -1 : y}`
+        const { baseCommand, revertAxisX, revertAxisY } = this.settings.gcode
+        const coordX = round(revertAxisX ? x * -1 : x)
+        const coordY = round(revertAxisY ? y * -1 : y)
+        return `${baseCommand} X${coordX} Y${coordY}`
     }
     beforeElementDraw(vectors: Vector[]): string[] {
         const before = []

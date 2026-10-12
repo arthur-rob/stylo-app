@@ -1,6 +1,6 @@
 import Layer from '@/lib/Layer'
 import Controls from '@/lib/Controls'
-import { Box, PaperSize } from '@/models/lib'
+import { Box, PaperSize, Rect } from '@/models/lib'
 import Geometry from '@/lib/geometry/Geometry'
 
 interface StyloArgs {
@@ -70,17 +70,50 @@ class Stylo {
     }
     add(element: Geometry, layerId?: string) {
         if (!element) return console.log('Argument need to be a geometry')
-        if (!layerId) this.layers[0].add(element)
-        else {
-            console.error('Not Implemented')
-        }
+        const layer = layerId ? this.getLayer(layerId) : this.layers[0]
+        if (!layer) return console.error(`Layer ${layerId} not found`)
+        layer.add(element)
+    }
+    addLayer(args: ConstructorParameters<typeof Layer>[0] = {}): Layer {
+        const layer = new Layer(args)
+        this.layers.push(layer)
+        return layer
+    }
+    getLayer(layerId: string): Layer | undefined {
+        return this.layers.find((layer) => layer.id === layerId)
+    }
+    removeLayer(layerId: string) {
+        this.layers = this.layers.filter((layer) => layer.id !== layerId)
+    }
+    clearLayers() {
+        this.layers = []
+    }
+    getDrawableArea(): Rect {
+        return Controls.getDrawableArea()
     }
     render() {
         this.scaleCanvas()
-        if (this.layers.length < 1 || !this.context) return
-        this.layers.forEach((layer) => {
-            layer.render(this.context)
-        })
+        const context = this.context
+        if (!context) return
+        // draw in mm: one unit = renderSize pixels
+        context.setTransform(this.renderSize, 0, 0, this.renderSize, 0, 0)
+        context.lineCap = 'round'
+        context.lineJoin = 'round'
+
+        const area = this.getDrawableArea()
+        const hairline = 1 / this.renderSize
+        context.save()
+        context.strokeStyle = '#94a3b8'
+        context.lineWidth = hairline
+        context.setLineDash([2, 1.5])
+        context.strokeRect(area.x, area.y, area.width, area.height)
+        context.restore()
+
+        this.layers
+            .filter((layer) => layer.visible)
+            .forEach((layer) =>
+                layer.render(context, { clip: area, lineWidth: hairline })
+            )
     }
     clear() {
         this.reset()
@@ -90,10 +123,11 @@ class Stylo {
     reset() {
         this.layers = [new Layer()]
     }
-    generateGCode(geometries?: Geometry[]): string[] {
-        if (typeof geometries == 'undefined')
-            geometries = this.layers[0].geometries
-        return Controls.generate(geometries)
+    generateGCode(layers?: Layer[]): string[] {
+        const target = layers || this.layers.filter((layer) => layer.visible)
+        return Controls.generateFromPaths(
+            target.flatMap((layer) => layer.getPaths())
+        )
     }
 }
 export default Stylo
