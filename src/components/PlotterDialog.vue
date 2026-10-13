@@ -193,7 +193,11 @@ const scanPorts = async () => {
     }
 }
 
-const open = (plotter: Plotter | null = null) => {
+// defaults prefill a new plotter, e.g. with a port picked from the scan
+const open = (
+    plotter: Plotter | null = null,
+    defaults: Partial<PlotterInput> = {}
+) => {
     editing.value = plotter
     Object.assign(
         form,
@@ -203,7 +207,7 @@ const open = (plotter: Plotter | null = null) => {
                   path: plotter.path,
                   baudRate: plotter.baudRate,
               }
-            : { ...DEFAULT_PLOTTER, name: nextFreeName() }
+            : { ...DEFAULT_PLOTTER, name: nextFreeName(), ...defaults }
     )
     submitted.value = false
     error.value = ''
