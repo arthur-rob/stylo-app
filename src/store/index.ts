@@ -27,6 +27,8 @@ export const useIndexStore = defineStore('index', () => {
     const ports = ref<SerialPortInfo[] | null>(null)
     const gCode = ref<string[]>([])
     const isDrawing = ref<boolean>(false)
+    // last known pen position, null until a command has been sent
+    const penDown = ref<boolean | null>(null)
     const connection = ref<'connecting' | 'online' | 'offline'>('connecting')
     const syncPlotter = async () => {
         connection.value = 'connecting'
@@ -88,6 +90,8 @@ export const useIndexStore = defineStore('index', () => {
                 plotterId: activePlotter.value?.name,
                 gCode: commands,
             })
+            // every generated program ends with the pen lifted
+            penDown.value = false
         } catch (error) {
             console.error('Draw Failed')
             throw error
@@ -103,6 +107,10 @@ export const useIndexStore = defineStore('index', () => {
     const resetPen = async () => {
         const resetCommands = Controls.generateUnstuckPenCommand()
         await execute(resetCommands)
+    }
+    const setPen = async (down: boolean) => {
+        await execute(Controls.generatePenCommand(down))
+        penDown.value = down
     }
     const moveTo = async (x: number, y: number) => {
         const resetCommands = Controls.generateManualCommand(x, y)
@@ -124,6 +132,8 @@ export const useIndexStore = defineStore('index', () => {
         activePlotter,
         draw,
         resetPen,
+        penDown,
+        setPen,
         moveTo,
         isDrawing,
     }

@@ -51,16 +51,33 @@ export function getUserUnitTransform(svg: Element): {
     return { scale, origin: new Vector(minX, minY) }
 }
 
-// Parse an SVG document into polylines expressed in mm
-export function svgToPaths(content: string): Vector[][] {
+export interface SvgLayer {
+    name: string
+    // stroke color found in the SVG, null when missing or too light for paper
+    color: string | null
+    paths: Vector[][]
+}
+
+const parseDocument = (content: string) => {
     const doc = new DOMParser().parseFromString(content, 'image/svg+xml')
     const svg = doc.documentElement
     if (doc.querySelector('parsererror') || svg.nodeName !== 'svg')
         throw new Error('This file is not a valid SVG')
+    return svg
+}
 
-    const { scale, origin } = getUserUnitTransform(svg)
+const pathElements = (element: Element): Element[] =>
+    element.nodeName === 'path'
+        ? [element]
+        : Array.from(element.querySelectorAll('path'))
+
+// Convert path elements into polylines expressed in mm
+const toPaths = (
+    elements: Element[],
+    { scale, origin }: ReturnType<typeof getUserUnitTransform>
+): Vector[][] => {
     const paths: Vector[][] = []
-    svg.querySelectorAll('path').forEach((element) => {
+    elements.forEach((element) => {
         const d = element.getAttribute('d')
         if (!d) return
         try {
@@ -81,4 +98,95 @@ export function svgToPaths(content: string): Vector[][] {
         }
     })
     return paths
+}
+
+// Most used stroke color, ignored when white-ish since it would vanish on paper
+const strokeColor = (group: Element, elements: Element[]): string | null => {
+    const counts = new Map<string, number>()
+    elements.forEach((element) => {
+        const stroke =
+            element.getAttribute('stroke') || group.getAttribute('stroke')
+        if (stroke) counts.set(stroke, (counts.get(stroke) || 0) + 1)
+    })
+    const [color] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] || []
+    const hex = color?.trim().toLowerCase()
+    const match = hex?.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/)
+    if (!hex || !match) return null
+    const full =
+        match[1].length === 3 ? match[1].replace(/./g, '$&$&') : match[1]
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16))
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    return luminance > 0.85 ? null : `#${full}`
+}
+
+/**
+ * Split an SVG into layers, one per top-level group (contour, trail, forest…).
+ * Groups strictly identical to a previous one are skipped and reported, since
+ * the pen would draw the same lines twice.
+ */
+export function svgToLayers(content: string): {
+    layers: SvgLayer[]
+    duplicates: string[]
+} {
+    const svg = parseDocument(content)
+    const transform = getUserUnitTransform(svg)
+    const children = Array.from(svg.children)
+    const groups = children.filter((child) => child.nodeName === 'g')
+
+    if (groups.length === 0) {
+        const paths = toPaths(pathElements(svg), transform)
+        return {
+            layers: paths.length
+                ? [
+                      {
+                          name: '',
+                          color: strokeColor(svg, pathElements(svg)),
+                          paths,
+                      },
+                  ]
+                : [],
+            duplicates: [],
+        }
+    }
+
+    const entries = groups.map((group, index) => ({
+        group,
+        name:
+            group.getAttribute('inkscape:label') ||
+            group.getAttribute('id') ||
+            `Group ${index + 1}`,
+        elements: pathElements(group),
+    }))
+    const loose = children.filter((child) => child.nodeName === 'path')
+    if (loose.length)
+        entries.push({ group: svg, name: 'Ungrouped', elements: loose })
+
+    const layers: SvgLayer[] = []
+    const duplicates: string[] = []
+    const seen = new Set<string>()
+    const nameCount = new Map<string, number>()
+    for (const { group, name, elements } of entries) {
+        const signature = elements.map((el) => el.getAttribute('d')).join('\n')
+        if (seen.has(signature)) {
+            duplicates.push(name)
+            continue
+        }
+        seen.add(signature)
+        const paths = toPaths(elements, transform)
+        if (paths.length === 0) continue
+        const count = (nameCount.get(name) || 0) + 1
+        nameCount.set(name, count)
+        layers.push({
+            name: count > 1 ? `${name} ${count}` : name,
+            color: strokeColor(group, elements),
+            paths,
+        })
+    }
+    return { layers, duplicates }
+}
+
+// Parse an SVG document into polylines expressed in mm
+export function svgToPaths(content: string): Vector[][] {
+    const svg = parseDocument(content)
+    return toPaths(pathElements(svg), getUserUnitTransform(svg))
 }

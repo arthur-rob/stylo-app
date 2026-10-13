@@ -10,7 +10,7 @@
             <div class="flex flex-1 min-h-0 items-center justify-center p-8">
                 <canvas
                     id="stylo"
-                    class="max-w-full max-h-full bg-white rounded-sm shadow-2xl"
+                    class="max-w-full max-h-full bg-white rounded-sm shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 ></canvas>
             </div>
             <div
@@ -35,7 +35,11 @@
                 <slot></slot>
                 <GcodePanel />
             </div>
-            <plotterActions :plot-label="plotLabel" />
+            <plotterActions :plot-label="plotLabel">
+                <template v-if="$slots.plot" #plot>
+                    <slot name="plot"></slot>
+                </template>
+            </plotterActions>
         </aside>
         <div
             v-if="isDraggingFiles"
