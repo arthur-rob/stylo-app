@@ -44,6 +44,25 @@
                             {{ value }}
                         </button>
                     </div>
+                    <div class="join w-full" role="group" aria-label="Pen">
+                        <button
+                            v-for="pen in penPositions"
+                            :key="pen.label"
+                            class="join-item btn btn-sm flex-1"
+                            :class="
+                                store.penDown === pen.down
+                                    ? 'btn-active btn-neutral'
+                                    : 'btn-soft'
+                            "
+                            :title="pen.title"
+                            :aria-pressed="store.penDown === pen.down"
+                            :disabled="!canControl"
+                            @click="setPen(pen.down)"
+                        >
+                            <Icon :name="pen.icon" :size="14" />
+                            {{ pen.label }}
+                        </button>
+                    </div>
                     <button
                         class="btn btn-sm btn-soft"
                         title="Lower and lift the pen to unstick it"
@@ -57,24 +76,32 @@
             </div>
         </section>
         <div class="p-4 pt-3 border-t border-base-300">
-            <button
-                class="btn btn-primary w-full"
-                :disabled="!canPlot"
-                @click="plot"
-            >
-                <span
-                    v-if="store.isDrawing"
-                    class="loading loading-spinner loading-sm"
-                ></span>
-                <Icon v-else name="play" />
-                {{ store.isDrawing ? 'Plotting…' : plotLabel }}
-            </button>
-            <p
-                v-if="plotHint"
-                class="mt-2 text-xs text-center text-base-content/50"
-            >
-                {{ plotHint }}
-            </p>
+            <slot name="plot">
+                <button
+                    class="btn btn-primary w-full"
+                    :disabled="!canPlot"
+                    @click="plot"
+                >
+                    <span
+                        v-if="store.isDrawing"
+                        class="loading loading-spinner loading-sm"
+                    ></span>
+                    <Icon v-else name="play" />
+                    {{ store.isDrawing ? 'Plotting…' : plotLabel }}
+                </button>
+                <p
+                    v-if="plotHint"
+                    class="mt-2 text-xs text-center text-base-content/50"
+                >
+                    {{ plotHint }}
+                    <RouterLink
+                        v-if="!hasPlotter && !store.isDrawing"
+                        to="/plotters"
+                        class="link link-primary"
+                        >Manage plotters</RouterLink
+                    >
+                </p>
+            </slot>
         </div>
     </div>
 </template>
@@ -100,12 +127,17 @@ const jogMoves = [
     { label: 'Y +', icon: 'chevronDown', area: 'down', x: 0, y: 1 },
 ] as const
 
+const penPositions = [
+    { label: 'Up', icon: 'arrowUp', down: false, title: 'Lift the pen' },
+    { label: 'Down', icon: 'arrowDown', down: true, title: 'Lower the pen' },
+] as const
+
 const hasPlotter = computed(() => !!store.activePlotter)
 const canControl = computed(() => hasPlotter.value && !store.isDrawing)
 const canPlot = computed(() => canControl.value && store.gCode.length > 0)
 const plotHint = computed(() => {
     if (store.isDrawing) return 'Sending instructions to the plotter'
-    if (!hasPlotter.value) return 'Connect a plotter to start plotting'
+    if (!hasPlotter.value) return 'No plotter selected.'
     if (store.gCode.length === 0) return 'Nothing to plot yet'
     return ''
 })
@@ -117,6 +149,11 @@ const run = async (action: () => Promise<void>, errorMessage: string) => {
         notify(errorMessage, 'error')
     }
 }
+const setPen = (down: boolean) =>
+    run(
+        () => store.setPen(down),
+        down ? 'Could not lower the pen' : 'Could not lift the pen'
+    )
 const jog = (x: number, y: number) =>
     run(() => store.moveTo(x * step.value, y * step.value), 'Move failed')
 const plot = async () => {

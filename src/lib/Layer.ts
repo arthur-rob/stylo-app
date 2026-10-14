@@ -8,6 +8,7 @@ interface LayerArgs {
     name?: string
     strokeWidth?: number
     color?: string
+    source?: string
 }
 
 interface LayerRenderOptions {
@@ -25,6 +26,8 @@ class Layer {
     // transform applied to geometries on render and G-code generation, in mm
     scaleFactor: number
     offset: Vector
+    // layers imported from the same file share a source and move together
+    source?: string
 
     constructor(layerParams: LayerArgs = {}) {
         this.id = layerParams.id || this.generateId()
@@ -35,6 +38,7 @@ class Layer {
         this.visible = true
         this.scaleFactor = 1
         this.offset = new Vector(0, 0)
+        this.source = layerParams.source
     }
     generateId() {
         return (Math.random() * 0xfffff * 1000000).toString(16).slice(0, 6)
@@ -90,22 +94,7 @@ class Layer {
     }
     // Scale and move the layer so it fills the area, keeping its ratio
     fitTo(area: Rect, margin = 0) {
-        const bounds = this.getSourceBounds()
-        if (!bounds || (bounds.width === 0 && bounds.height === 0)) return
-        const width = area.width - margin * 2
-        const height = area.height - margin * 2
-        this.scaleFactor = Math.min(
-            bounds.width ? width / bounds.width : Infinity,
-            bounds.height ? height / bounds.height : Infinity
-        )
-        this.offset = new Vector(
-            area.x +
-                (area.width - bounds.width * this.scaleFactor) / 2 -
-                bounds.x * this.scaleFactor,
-            area.y +
-                (area.height - bounds.height * this.scaleFactor) / 2 -
-                bounds.y * this.scaleFactor
-        )
+        fitLayersTo([this], area, margin)
     }
     countCroppedPaths(area: Rect): number {
         return this.getPaths().filter((path) => isPathCropped(path, area))
@@ -140,6 +129,36 @@ class Layer {
             )
         )
     }
+}
+
+export function unionBounds(rects: (Rect | null)[]): Rect | null {
+    const boxes = rects.filter((rect): rect is Rect => !!rect)
+    if (boxes.length === 0) return null
+    const minX = Math.min(...boxes.map((box) => box.x))
+    const minY = Math.min(...boxes.map((box) => box.y))
+    const maxX = Math.max(...boxes.map((box) => box.x + box.width))
+    const maxY = Math.max(...boxes.map((box) => box.y + box.height))
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+}
+
+// Fit layers as one drawing: they all get the same scale and offset to stay aligned
+export function fitLayersTo(layers: Layer[], area: Rect, margin = 0) {
+    const bounds = unionBounds(layers.map((layer) => layer.getSourceBounds()))
+    if (!bounds || (bounds.width === 0 && bounds.height === 0)) return
+    const width = area.width - margin * 2
+    const height = area.height - margin * 2
+    const scale = Math.min(
+        bounds.width ? width / bounds.width : Infinity,
+        bounds.height ? height / bounds.height : Infinity
+    )
+    const offset = new Vector(
+        area.x + (area.width - bounds.width * scale) / 2 - bounds.x * scale,
+        area.y + (area.height - bounds.height * scale) / 2 - bounds.y * scale
+    )
+    layers.forEach((layer) => {
+        layer.scaleFactor = scale
+        layer.offset = offset
+    })
 }
 
 function strokePath(context: CanvasRenderingContext2D, path: Vector[]) {

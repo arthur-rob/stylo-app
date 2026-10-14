@@ -18,18 +18,22 @@
             </RouterLink>
         </nav>
         <div class="p-3 border-t border-base-300">
-            <div class="flex items-center gap-2 text-sm">
-                <span
-                    class="status status-sm"
-                    :class="status.class"
-                    aria-hidden="true"
-                ></span>
-                <div class="min-w-0 flex-1">
-                    <p class="text-xs text-base-content/50">Plotter</p>
-                    <p class="truncate" :title="status.label">
-                        {{ status.label }}
-                    </p>
-                </div>
+            <div class="flex items-center gap-1 text-sm">
+                <RouterLink
+                    to="/plotters"
+                    class="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 -m-1 hover:bg-base-300"
+                    title="Manage plotters"
+                >
+                    <span
+                        class="status status-sm"
+                        :class="status.class"
+                        aria-hidden="true"
+                    ></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs text-base-content/50">Plotter</p>
+                        <p class="truncate">{{ status.label }}</p>
+                    </div>
+                </RouterLink>
                 <button
                     v-if="store.connection === 'offline'"
                     class="btn btn-ghost btn-xs btn-square"
@@ -54,6 +58,7 @@ const links = [
     { to: '/import', label: 'Import', icon: 'upload' },
     { to: '/carto', label: 'Carto', icon: 'map' },
     { to: '/playground', label: 'Playground', icon: 'shapes' },
+    { to: '/plotters', label: 'Plotters', icon: 'plotter' },
 ] as const
 
 const status = computed(() => {

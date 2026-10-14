@@ -66,6 +66,20 @@ const icons = {
     chevronLeft: ['m15 18-6-6 6-6'],
     chevronRight: ['m9 18 6-6-6-6'],
     x: ['M18 6 6 18', 'm6 6 12 12'],
+    check: ['M20 6 9 17l-5-5'],
+    arrowUp: ['M12 19V5', 'm5 12 7-7 7 7'],
+    arrowDown: ['M12 5v14', 'm19 12-7 7-7-7'],
+    plotter: [
+        'M6 9V2h12v7',
+        'M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2',
+        'M6 14h12v8H6z',
+    ],
+    plug: [
+        'M12 22v-5',
+        'M9 8V2',
+        'M15 8V2',
+        'M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z',
+    ],
 }
 
 withDefaults(defineProps<{ name: keyof typeof icons; size?: number }>(), {

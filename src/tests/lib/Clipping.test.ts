@@ -226,3 +226,22 @@ describe('Controls G-code clipping', () => {
         expect(steps.filter((s) => s === zAxisUp)).toHaveLength(2)
     })
 })
+
+describe('Controls pen command', () => {
+    test('only moves the servo, without lifting the pen first', () => {
+        const { unit, speed, mode, zAxisDown, zAxisUp } =
+            Controls.settings.gcode
+        expect(Controls.generatePenCommand(true)).toEqual([
+            unit,
+            speed,
+            mode,
+            zAxisDown,
+        ])
+        expect(Controls.generatePenCommand(false)).toEqual([
+            unit,
+            speed,
+            mode,
+            zAxisUp,
+        ])
+    })
+})

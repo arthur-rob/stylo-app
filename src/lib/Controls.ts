@@ -51,13 +51,17 @@ class Control {
         this.finalSteps = this.backToZero()
         this.gcodeCommands = []
     }
+    setup() {
+        const { unit, speed, mode } = this.settings.gcode
+        return [unit, speed, mode]
+    }
     init() {
-        const setup = []
-        setup.push(this.settings.gcode.unit)
-        setup.push(this.settings.gcode.speed)
-        setup.push(this.settings.gcode.mode)
-        setup.push(this.settings.gcode.zAxisUp)
-        return setup
+        return [...this.setup(), this.settings.gcode.zAxisUp]
+    }
+    // Only move the pen servo, without lifting it first like init() does
+    generatePenCommand(down: boolean) {
+        const { zAxisDown, zAxisUp } = this.settings.gcode
+        return [...this.setup(), down ? zAxisDown : zAxisUp]
     }
     generateManualCommand(x: number, y: number) {
         const commands = this.init()
